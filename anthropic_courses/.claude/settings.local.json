@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Read(//c/Users/tsummey/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/fd2e5411-ee4c-40f6-a67e-22fd71eda6d7/95e89fee-1d5d-4fcd-8bac-e5e26cd3e530/skills/docx/**)",
+      "Bash(npm install *)",
+      "Bash(node build_resume.js)",
+      "Bash(python scripts/office/validate.py \"C:\\\\Users\\\\tsummey\\\\OneDrive\\\\Desktop\\\\Ted_Summey_Resume.docx\")",
+      "Bash(pip install *)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\tsummey\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\fd2e5411-ee4c-40f6-a67e-22fd71eda6d7\\\\95e89fee-1d5d-4fcd-8bac-e5e26cd3e530\\\\skills\\\\docx\\\\unpacked_resume\")",
+      "Bash(rm -rf \"C:\\\\Users\\\\tsummey\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\fd2e5411-ee4c-40f6-a67e-22fd71eda6d7\\\\95e89fee-1d5d-4fcd-8bac-e5e26cd3e530\\\\skills\\\\docx\\\\unpacked_resume\" && echo \"Cleaned\")"
+    ]
+  }
+}

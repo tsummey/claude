@@ -1,0 +1,26 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Environment
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor
+.vs/
+.vscode/
+
+# Nested git repos (managed separately if needed)
+anthropiccourses/.git/
+
+# OS
+.DS_Store
+Thumbs.db
