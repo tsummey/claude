@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 4: Prompt Engineering & Structured Output</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2e3350;
+    --accent: #f4a261;
+    --accent2: #e76f51;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #161b2e;
+    --green: #64ffda;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .hero {
+    background: linear-gradient(135deg, #1a1d27 0%, #1e160c 50%, #1a1d27 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+  .domain-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .weight-pill {
+    display: inline-block;
+    background: #f4a26122;
+    border: 1px solid #f4a26155;
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+    margin-top: 0.5rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .overview-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; }
+  .overview-card p { color: var(--muted); margin-bottom: 0.75rem; }
+  .overview-card p:last-child { margin-bottom: 0; }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .scenario-tag { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 6px; }
+  .task-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; overflow: hidden; }
+  .task-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .task-num { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+  .task-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .task-body { padding: 1.5rem; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--accent); margin: 1.5rem 0 0.75rem; }
+  h3:first-child { margin-top: 0; }
+  p { color: var(--muted); margin-bottom: 0.75rem; }
+  strong { color: var(--text); }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; background: var(--code-bg); color: var(--green); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.88em; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 0.84rem; line-height: 1.6; color: #cdd6f4; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .cm { color: #6c7086; font-style: italic; }
+  .fn { color: #89dceb; }
+  .num { color: #fab387; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: var(--surface2); color: var(--accent); font-weight: 700; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--border); }
+  td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  .callout { border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; border-left: 4px solid; }
+  .callout-warn { background: #ffd16611; border-color: var(--yellow); }
+  .callout-warn p { color: #ffd16699; }
+  .callout-danger { background: #ff6b6b11; border-color: var(--red); }
+  .callout-danger p { color: #ff6b6b99; }
+  .callout-tip { background: #f4a26111; border-color: var(--accent); }
+  .callout-tip p { color: #f4a26199; }
+  .callout-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .callout-warn .callout-label { color: var(--yellow); }
+  .callout-danger .callout-label { color: var(--red); }
+  .callout-tip .callout-label { color: var(--accent); }
+  .output-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+  .compare-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .compare-box .compare-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .compare-box.bad .compare-label { color: var(--red); }
+  .compare-box.good .compare-label { color: var(--green); }
+  .compare-box p { font-size: 0.85rem; }
+  .reliability-bar { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+  .bar-label { font-size: 0.82rem; color: var(--muted); width: 200px; flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--surface2); border-radius: 100px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 100px; }
+  .bar-low { background: var(--red); width: 30%; }
+  .bar-mid { background: var(--yellow); width: 65%; }
+  .bar-high { background: var(--green); width: 100%; }
+  .bar-note { font-size: 0.78rem; color: var(--muted); width: 60px; text-align: right; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .summary-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .summary-item .key { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .summary-item .val { font-size: 0.82rem; color: var(--muted); }
+  .exam-section { background: linear-gradient(135deg, #ffd16611, #f4a26111); border: 1px solid #ffd16633; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+  .exam-section h2 { color: var(--yellow); font-size: 1.1rem; margin-bottom: 1rem; }
+  .exam-q { margin-bottom: 1.25rem; }
+  .exam-q .q { color: var(--text); font-style: italic; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .exam-q .a { color: var(--green); font-size: 0.88rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  ul { padding-left: 1.5rem; color: var(--muted); margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.3rem; }
+  .batch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .batch-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .batch-item .scenario { font-size: 0.8rem; color: var(--text); font-weight: 600; margin-bottom: 0.2rem; }
+  .batch-item .api { font-size: 0.78rem; }
+  .batch-item .api.sync { color: #38bdf8; }
+  .batch-item .api.batch { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Domain 4</div>
+  <h1>Prompt Engineering &amp; Structured Output</h1>
+  <div class="weight-pill">Exam Weight: 20%</div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p>This domain separates architects who understand how Claude actually works from those who treat it as a magic box. Prompt engineering at the CCAF level is about designing systems that produce reliable, consistent, verifiable output at production scale.</p>
+    <p>Tests: structured output enforcement, few-shot prompting, validation-retry loops, batch processing decisions, and multi-pass review architecture.</p>
+    <div class="scenarios">
+      <span class="scenario-tag">Scenario 5: Claude Code for CI/CD</span>
+      <span class="scenario-tag">Scenario 6: Structured Data Extraction</span>
+    </div>
+  </div>
+
+  <!-- 4.1 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">4.1</span>
+      <h2>Explicit Criteria to Reduce False Positives</h2>
+    </div>
+    <div class="task-body">
+      <div class="output-compare">
+        <div class="compare-box bad">
+          <div class="compare-label">Vague — Inconsistent</div>
+          <p style="color: var(--muted); font-size: 0.85rem;">"Review this code for issues. Be conservative and only flag things you're confident about."</p>
+        </div>
+        <div class="compare-box good">
+          <div class="compare-label">Explicit — Consistent</div>
+          <p style="color: var(--muted); font-size: 0.85rem;">
+          REPORT: SQL injection, hardcoded credentials, missing auth on data-modifying endpoints<br><br>
+          DO NOT REPORT: naming conventions, style, minor refactors, performance micro-opts
+          </p>
+        </div>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Why "Only Report High-Confidence Findings" Fails</div>
+        <p>Confidence calibration is not reliable across runs. The same code may get flagged in one run and not another. Specify categories instead: ALWAYS report / NEVER report / SOMETIMES report (with conditions).</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Managing Trust Through False Positive Rates</div>
+        <p>High FPs in one category undermine trust in ALL categories. If developers dismiss 70% of security alerts as false positives, they'll miss the 30% that are real. Temporarily disable the high-FP category while fixing its criteria.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.2 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">4.2</span>
+      <h2>Few-Shot Prompting</h2>
+    </div>
+    <div class="task-body">
+      <h3>When to Use Few-Shot</h3>
+      <ul>
+        <li>Detailed prose still produces inconsistent output format</li>
+        <li>The task involves ambiguous cases you need to handle a specific way</li>
+        <li>You need the model to generalize judgment to patterns not explicitly specified</li>
+        <li>Extraction tasks with varied document structures</li>
+      </ul>
+
+      <h3>Structure of Effective Examples</h3>
+      <p>Each example should show: <strong>input</strong>, <strong>correct output</strong>, and for ambiguous cases: <strong>why this was right</strong>.</p>
+
+      <pre><code>EXAMPLE 1 — SQL Injection (should report):
+Input: <span class="str">"SELECT * FROM users WHERE id = "</span> + user_id
+Output: {severity: <span class="str">"CRITICAL"</span>, category: <span class="str">"sql_injection"</span>, ...}
+
+EXAMPLE 2 — Internal enum (should NOT report):
+Input: <span class="str">"SELECT * FROM config WHERE key = "</span> + config_key
+Context: config_key is a validated enum from internal config, not user input
+Output: null  <span class="cm">(not a vulnerability — input is not user-controlled)</span>
+
+EXAMPLE 3 — Request parameter (ambiguous → explain reasoning):
+Input: <span class="str">"SELECT * FROM products WHERE category = "</span> + category
+Context: category comes from a request parameter
+Output: {severity: <span class="str">"HIGH"</span>, ...}
+Reasoning: Request parameters are user-controlled and must be treated as untrusted.</code></pre>
+
+      <h3>Few-Shot for Missing Field Handling</h3>
+      <pre><code>EXAMPLE — Missing fields:
+Document: <span class="str">"Acme Corp billed us $1,250 for consulting services."</span>
+Output: {invoice_number: null, date: null, amount: <span class="num">1250.00</span>, vendor: <span class="str">"Acme Corp"</span>}
+Note: Return null for absent fields — <span class="kw">never</span> fabricate values.</code></pre>
+    </div>
+  </div>
+
+  <!-- 4.3 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">4.3</span>
+      <h2>Structured Output via Tool Use and JSON Schemas</h2>
+    </div>
+    <div class="task-body">
+      <h3>Reliability Comparison</h3>
+      <div class="reliability-bar">
+        <span class="bar-label">"Respond in JSON"</span>
+        <div class="bar-track"><div class="bar-fill bar-low"></div></div>
+        <span class="bar-note">Low</span>
+      </div>
+      <div class="reliability-bar">
+        <span class="bar-label">System prompt for JSON</span>
+        <div class="bar-track"><div class="bar-fill bar-mid"></div></div>
+        <span class="bar-note">Medium</span>
+      </div>
+      <div class="reliability-bar">
+        <span class="bar-label">tool_use with JSON schema</span>
+        <div class="bar-track"><div class="bar-fill bar-high"></div></div>
+        <span class="bar-note">High</span>
+      </div>
+      <p style="font-size: 0.82rem; margin-top: 0.5rem;"><code>tool_use</code> eliminates JSON syntax errors completely — the API enforces the schema.</p>
+
+      <h3>Force the Specific Tool</h3>
+      <pre><code>response = client.messages.create(
+    model=<span class="str">"claude-opus-4-5"</span>,
+    tools=[EXTRACTION_TOOL],
+    <span class="cm"># Force specific tool — don't use "auto" (Claude might respond with text)</span>
+    tool_choice={<span class="str">"type"</span>: <span class="str">"tool"</span>, <span class="str">"name"</span>: <span class="str">"extract_invoice_data"</span>},
+    messages=[...]
+)</code></pre>
+
+      <h3>Nullable Fields — Critical for Preventing Hallucination</h3>
+      <div class="output-compare">
+        <div class="compare-box bad">
+          <div class="compare-label">Wrong — Forces Hallucination</div>
+          <p style="color: var(--muted); font-size: 0.85rem;"><code>"invoice_date": {"type": "string"}</code><br><br>Claude WILL make up a date if none exists in the document.</p>
+        </div>
+        <div class="compare-box good">
+          <div class="compare-label">Right — Allows Honest Null</div>
+          <p style="color: var(--muted); font-size: 0.85rem;"><code>"invoice_date": {"type": ["string", "null"]}</code><br><br>Claude returns null when not found — no fabrication.</p>
+        </div>
+      </div>
+
+      <h3>Schema Patterns</h3>
+      <pre><code><span class="cm"># Enum with "other" + detail</span>
+<span class="str">"expense_category"</span>: {<span class="str">"enum"</span>: [<span class="str">"travel"</span>, <span class="str">"software"</span>, <span class="str">"other"</span>]},
+<span class="str">"expense_category_detail"</span>: {<span class="str">"type"</span>: [<span class="str">"string"</span>, <span class="str">"null"</span>], <span class="str">"description"</span>: <span class="str">"Required when 'other'"</span>}
+
+<span class="cm"># Confidence field</span>
+<span class="str">"extraction_confidence"</span>: {
+    <span class="str">"enum"</span>: [<span class="str">"high"</span>, <span class="str">"medium"</span>, <span class="str">"low"</span>],
+    <span class="str">"description"</span>: <span class="str">"high: clear text; medium: inferred; low: ambiguous"</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- 4.4 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">4.4</span>
+      <h2>Validation, Retry &amp; Feedback Loops</h2>
+    </div>
+    <div class="task-body">
+      <h3>Retry with Specific Error Feedback</h3>
+      <p>When extraction fails validation, include the specific error in the retry prompt — don't retry blindly.</p>
+
+      <pre><code><span class="kw">def</span> <span class="fn">extract_with_retry</span>(document: str, max_retries: int = <span class="num">3</span>) -> dict:
+    extraction = extract_invoice(document)
+
+    <span class="kw">for</span> attempt <span class="kw">in</span> range(max_retries):
+        errors = validate_extraction(extraction)
+        <span class="kw">if not</span> errors:
+            <span class="kw">return</span> extraction  <span class="cm"># Valid — done</span>
+        <span class="kw">if</span> attempt == max_retries - <span class="num">1</span>:
+            <span class="kw">break</span>
+        <span class="cm"># Retry with specific error feedback</span>
+        extraction = extract_invoice_with_feedback(
+            document=document,
+            prior_extraction=extraction,
+            validation_errors=errors  <span class="cm"># Tell Claude exactly what was wrong</span>
+        )
+    <span class="kw">return</span> extraction  <span class="cm"># Return best attempt even if imperfect</span></code></pre>
+
+      <h3>When Retries Will NOT Help</h3>
+      <div class="output-compare">
+        <div class="compare-box good">
+          <div class="compare-label">Retry WILL fix</div>
+          <p style="color: var(--muted); font-size: 0.85rem;">Format error: <em>"date '01/15/2024' is not in YYYY-MM-DD format"</em><br>Claude can reformat to "2024-01-15".</p>
+        </div>
+        <div class="compare-box bad">
+          <div class="compare-label">Retry will NOT fix</div>
+          <p style="color: var(--muted); font-size: 0.85rem;">Missing info: <em>"invoice_number is null but required"</em><br>There's no invoice number in the document. Route to human review instead.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.5 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">4.5</span>
+      <h2>Batch Processing</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Cost savings</td><td>50% vs. standard API</td></tr>
+        <tr><td>Processing window</td><td>Up to 24 hours</td></tr>
+        <tr><td>Latency SLA</td><td>None — no guaranteed completion time</td></tr>
+        <tr><td>Multi-turn tool calling</td><td>NOT supported within a single batch request</td></tr>
+        <tr><td>Request correlation</td><td><code>custom_id</code> field on each request</td></tr>
+      </table>
+
+      <h3>Matching Workflow to API</h3>
+      <div class="batch-grid">
+        <div class="batch-item"><div class="scenario">Blocking pre-merge check</div><div class="api sync">→ Synchronous API</div></div>
+        <div class="batch-item"><div class="scenario">Overnight technical debt report</div><div class="api batch">→ Batch API</div></div>
+        <div class="batch-item"><div class="scenario">Real-time customer support</div><div class="api sync">→ Synchronous API</div></div>
+        <div class="batch-item"><div class="scenario">Weekly security audit</div><div class="api batch">→ Batch API</div></div>
+        <div class="batch-item"><div class="scenario">Nightly test generation</div><div class="api batch">→ Batch API</div></div>
+        <div class="batch-item"><div class="scenario">Interactive code assistant</div><div class="api sync">→ Synchronous API</div></div>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">SLA Calculation</div>
+        <p>With a 30-hour SLA and 24-hour batch window: submit every <code>30 - 24 = 6 hours</code> to guarantee any batch completes within the SLA.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.6 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">4.6</span>
+      <h2>Multi-Instance and Multi-Pass Review</h2>
+    </div>
+    <div class="task-body">
+      <div class="callout callout-warn">
+        <div class="callout-label">Self-Review Limitation</div>
+        <p>When Claude reviews code it just wrote, it retains the reasoning that led to those decisions. It is less likely to question choices it just made — the same cognitive bias humans have when proofreading their own work.</p>
+      </div>
+
+      <h3>Multi-Pass Architecture</h3>
+      <pre><code><span class="cm"># Pass 1: Per-file local analysis (focused, deep)</span>
+<span class="kw">for</span> filename, content <span class="kw">in</span> files.items():
+    findings = claude.create(messages=[{
+        <span class="str">"content"</span>: <span class="fn">f</span><span class="str">"Analyze {filename} for logic bugs, error handling gaps,</span>
+<span class="str">security vulnerabilities. Do NOT consider cross-file dependencies."</span>
+    }])
+    per_file_findings[filename] = findings
+
+<span class="cm"># Pass 2: Cross-file integration (data flow, interfaces, architecture)</span>
+integration = claude.create(messages=[{
+    <span class="str">"content"</span>: <span class="fn">f</span><span class="str">"Given per-file analyses: {per_file_findings}</span>
+<span class="str">Identify ONLY cross-file issues: data flow bugs, interface mismatches,</span>
+<span class="str">missing error propagation, architectural violations, race conditions.</span>
+<span class="str">Do NOT repeat issues already in per-file analyses."</span>
+}])</code></pre>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">∑</span>
+      <h2>Key Concepts Summary</h2>
+    </div>
+    <div class="task-body">
+      <div class="summary-grid">
+        <div class="summary-item"><div class="key">Explicit criteria</div><div class="val">Specify WHAT to report and NOT report — don't rely on "confidence"</div></div>
+        <div class="summary-item"><div class="key">Few-shot examples</div><div class="val">Most effective for format consistency and ambiguous case handling</div></div>
+        <div class="summary-item"><div class="key">tool_use for structured output</div><div class="val">Eliminates JSON syntax errors; doesn't prevent semantic errors</div></div>
+        <div class="summary-item"><div class="key">Nullable fields</div><div class="val">Required for any field that may be absent — prevents fabrication</div></div>
+        <div class="summary-item"><div class="key">tool_choice</div><div class="val">auto / any / forced — use forced when specific tool must run first</div></div>
+        <div class="summary-item"><div class="key">Validation-retry</div><div class="val">Include specific errors in retry; retries fix format, not missing info</div></div>
+        <div class="summary-item"><div class="key">Batch API</div><div class="val">50% savings, 24hr window, no SLA, no multi-turn tool calling</div></div>
+        <div class="summary-item"><div class="key">custom_id</div><div class="val">Correlates batch requests to responses; use for failure resubmission</div></div>
+        <div class="summary-item"><div class="key">Self-review bias</div><div class="val">Independent instance reviews better than self-review</div></div>
+        <div class="summary-item"><div class="key">Multi-pass review</div><div class="val">Per-file passes (depth) + integration pass (cross-file issues)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exam-section">
+    <h2>What the Exam Will Test You On</h2>
+    <div class="exam-q">
+      <div class="q">"Your extraction pipeline returns empty strings for missing fields. Why is this a problem?"</div>
+      <div class="a">Cannot distinguish "field not in document" from "field is empty string" — use null</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Claude is told to 'be conservative' but still reports too many false positives. Fix?"</div>
+      <div class="a">Replace vague instruction with explicit REPORT/DO NOT REPORT category lists</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"You need guaranteed structured output. Which is most reliable?"</div>
+      <div class="a">tool_use with JSON schema — eliminates syntax errors (but not semantic errors)</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Your batch job has 47 failures. What do you do?"</div>
+      <div class="a">Use custom_id to identify failures, analyze failure reason, resubmit with fixes (chunk if context exceeded)</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Why is reviewing code with the same Claude session that generated it less effective?"</div>
+      <div class="a">Session retains reasoning context; independent instance reviews without that bias</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

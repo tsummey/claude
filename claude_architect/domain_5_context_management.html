@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 5: Context Management & Reliability</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2e3350;
+    --accent: #c084fc;
+    --accent2: #e879f9;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #161b2e;
+    --green: #64ffda;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --blue: #38bdf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .hero {
+    background: linear-gradient(135deg, #1a1d27 0%, #1a0f2e 50%, #1a1d27 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+  .domain-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .weight-pill {
+    display: inline-block;
+    background: #c084fc22;
+    border: 1px solid #c084fc55;
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+    margin-top: 0.5rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .overview-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; }
+  .overview-card p { color: var(--muted); margin-bottom: 0.75rem; }
+  .overview-card p:last-child { margin-bottom: 0; }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .scenario-tag { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 6px; }
+  .task-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; overflow: hidden; }
+  .task-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .task-num { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+  .task-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .task-body { padding: 1.5rem; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--accent); margin: 1.5rem 0 0.75rem; }
+  h3:first-child { margin-top: 0; }
+  p { color: var(--muted); margin-bottom: 0.75rem; }
+  strong { color: var(--text); }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; background: var(--code-bg); color: var(--green); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.88em; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 0.84rem; line-height: 1.6; color: #cdd6f4; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .cm { color: #6c7086; font-style: italic; }
+  .fn { color: #89dceb; }
+  .num { color: #fab387; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: var(--surface2); color: var(--accent); font-weight: 700; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--border); }
+  td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  .callout { border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; border-left: 4px solid; }
+  .callout-warn { background: #ffd16611; border-color: var(--yellow); }
+  .callout-warn p { color: #ffd16699; }
+  .callout-danger { background: #ff6b6b11; border-color: var(--red); }
+  .callout-danger p { color: #ff6b6b99; }
+  .callout-tip { background: #c084fc11; border-color: var(--accent); }
+  .callout-tip p { color: #c084fc99; }
+  .callout-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .callout-warn .callout-label { color: var(--yellow); }
+  .callout-danger .callout-label { color: var(--red); }
+  .callout-tip .callout-label { color: var(--accent); }
+  .loss-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .loss-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .loss-card .loss-num { font-size: 1.5rem; font-weight: 900; color: var(--accent); margin-bottom: 0.25rem; }
+  .loss-card .loss-title { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; }
+  .loss-card .loss-desc { font-size: 0.8rem; color: var(--muted); }
+  .context-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+  .ctx-row { display: flex; gap: 0.5rem; align-items: stretch; margin-bottom: 0.5rem; }
+  .ctx-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; width: 120px; flex-shrink: 0; display: flex; align-items: center; }
+  .ctx-bar { flex: 1; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; }
+  .ctx-start { background: #c084fc22; border: 1px solid #c084fc44; color: #c084fc; }
+  .ctx-mid { background: #8892b022; border: 1px solid #8892b044; color: var(--muted); }
+  .ctx-end { background: #64ffda22; border: 1px solid #64ffda44; color: var(--green); }
+  .escalation-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .esc-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .esc-card .esc-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .esc-card.always .esc-label { color: var(--green); }
+  .esc-card.consider .esc-label { color: var(--yellow); }
+  .esc-card.never .esc-label { color: var(--red); }
+  .esc-card ul { padding-left: 1rem; font-size: 0.82rem; color: var(--muted); }
+  .esc-card li { margin-bottom: 0.3rem; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .summary-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .summary-item .key { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .summary-item .val { font-size: 0.82rem; color: var(--muted); }
+  .exam-section { background: linear-gradient(135deg, #ffd16611, #c084fc11); border: 1px solid #ffd16633; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+  .exam-section h2 { color: var(--yellow); font-size: 1.1rem; margin-bottom: 1rem; }
+  .exam-q { margin-bottom: 1.25rem; }
+  .exam-q .q { color: var(--text); font-style: italic; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .exam-q .a { color: var(--green); font-size: 0.88rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  ul { padding-left: 1.5rem; color: var(--muted); margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.3rem; }
+  .accuracy-chart { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+  .accuracy-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+  .accuracy-row:last-child { margin-bottom: 0; }
+  .acc-label { font-size: 0.82rem; color: var(--muted); width: 220px; flex-shrink: 0; }
+  .acc-track { flex: 1; background: var(--bg); border-radius: 100px; height: 10px; overflow: hidden; }
+  .acc-fill { height: 100%; border-radius: 100px; }
+  .acc-pct { font-size: 0.78rem; font-weight: 700; width: 45px; text-align: right; }
+  .acc-99 { background: var(--green); width: 99%; }
+  .acc-81 { background: var(--red); width: 81%; }
+  .acc-97 { background: var(--yellow); width: 97%; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Domain 5</div>
+  <h1>Context Management &amp; Reliability</h1>
+  <div class="weight-pill">Exam Weight: 15%</div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p>Context is Claude's working memory. Everything it knows in a session lives in the context window — and that window is finite. This domain tests whether you can design systems that preserve critical information, escalate correctly, propagate errors intelligently, and build human review workflows that scale.</p>
+    <p>The exam presents systems that are losing information, escalating incorrectly, or silently failing — and asks you to diagnose and fix them.</p>
+    <div class="scenarios">
+      <span class="scenario-tag">Scenario 1: Customer Support</span>
+      <span class="scenario-tag">Scenario 3: Multi-Agent Research</span>
+      <span class="scenario-tag">Scenario 6: Structured Data Extraction</span>
+    </div>
+  </div>
+
+  <!-- 5.1 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">5.1</span>
+      <h2>Manage Conversation Context</h2>
+    </div>
+    <div class="task-body">
+      <h3>Three Ways Critical Information Gets Destroyed</h3>
+      <div class="loss-grid">
+        <div class="loss-card">
+          <div class="loss-num">1</div>
+          <div class="loss-title">Progressive Summarization</div>
+          <div class="loss-desc">Original: "Customer paid $1,247.83 on March 15th for order #ORD-98234"<br><br>After summarization: "Customer had a payment issue last month"<br><br>Amount, date, and order ID are gone — cannot be recovered.</div>
+        </div>
+        <div class="loss-card">
+          <div class="loss-num">2</div>
+          <div class="loss-title">Lost in the Middle</div>
+          <div class="loss-desc">Models reliably process information at the beginning and end of long contexts. In a 40-source report, sources 15–25 may be underrepresented in the synthesis.</div>
+        </div>
+        <div class="loss-card">
+          <div class="loss-num">3</div>
+          <div class="loss-title">Tool Result Accumulation</div>
+          <div class="loss-desc">Every tool call appends a result to context. An order lookup returning 40 fields (most irrelevant) consumes significant tokens for every subsequent call.</div>
+        </div>
+      </div>
+
+      <h3>The Case Facts Pattern</h3>
+      <p>Extract transactional facts into a persistent block outside the summarized history, placed at the <strong>beginning</strong> of every prompt (high-attention position).</p>
+      <pre><code><span class="cm">=== CASE FACTS (DO NOT LOSE THESE) ===</span>
+Customer ID: CUST-00123
+Customer: Jane Smith
+Orders: ORD-98234, ORD-99011
+Amounts: {"ORD-98234": 1247.83, "ORD-99011": 89.00}
+Status: refund_in_progress
+<span class="cm">=====================================</span></code></pre>
+
+      <h3>Position-Aware Input Organization</h3>
+      <div class="context-diagram">
+        <div class="ctx-row">
+          <span class="ctx-label" style="color: var(--accent);">Start (↑ attn)</span>
+          <div class="ctx-bar ctx-start">Key findings summary — sets context correctly, read first</div>
+        </div>
+        <div class="ctx-row">
+          <span class="ctx-label" style="color: var(--muted);">Middle (↓ attn)</span>
+          <div class="ctx-bar ctx-mid">Detailed source findings — supporting information, lower attention is fine</div>
+        </div>
+        <div class="ctx-row">
+          <span class="ctx-label" style="color: var(--green);">End (↑ attn)</span>
+          <div class="ctx-bar ctx-end">Synthesis requirements / instructions — Claude follows these carefully</div>
+        </div>
+      </div>
+
+      <h3>Trimming Verbose Tool Outputs</h3>
+      <p>Before appending a tool result to the conversation, trim it to relevant fields. A 40-field order record reduced to 8 relevant fields saves significant context for every subsequent API call.</p>
+    </div>
+  </div>
+
+  <!-- 5.2 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">5.2</span>
+      <h2>Escalation and Ambiguity Resolution</h2>
+    </div>
+    <div class="task-body">
+      <h3>When to Escalate — The Correct Triggers</h3>
+      <div class="escalation-grid">
+        <div class="esc-card always">
+          <div class="esc-label">Always Escalate</div>
+          <ul>
+            <li>Customer explicitly requests a human agent</li>
+            <li>Policy is silent/ambiguous on this specific request</li>
+            <li>Cannot make meaningful progress after genuine attempts</li>
+          </ul>
+        </div>
+        <div class="esc-card consider">
+          <div class="esc-label">Consider Escalating</div>
+          <ul>
+            <li>High-value transaction with unusual circumstances</li>
+            <li>Customer has made the same complaint 3+ times</li>
+          </ul>
+        </div>
+        <div class="esc-card never">
+          <div class="esc-label">Do NOT Escalate For</div>
+          <ul>
+            <li>Customer sentiment / frustration level alone</li>
+            <li>Your own confidence score</li>
+            <li>General "complexity" — many complex-seeming requests are routine</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Critical Rule</div>
+        <p>If a customer explicitly asks for a human — <strong>escalate immediately</strong>, even if you could resolve it. Honor the request without attempting resolution first.</p>
+      </div>
+
+      <h3>Handling Ambiguous Customer Matches</h3>
+      <p>When <code>get_customer</code> returns multiple matches, never select based on heuristics (most recent, highest-value, etc.). Always ask for additional identifiers: email, order number, or last 4 digits of payment method.</p>
+    </div>
+  </div>
+
+  <!-- 5.3 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">5.3</span>
+      <h2>Error Propagation Across Multi-Agent Systems</h2>
+    </div>
+    <div class="task-body">
+      <h3>The Structured Error Contract</h3>
+      <p>Every error a subagent returns must enable the coordinator to make a decision. <code>{"error": "search failed"}</code> gives the coordinator nothing to work with.</p>
+
+      <pre><code><span class="kw">def</span> <span class="fn">create_structured_error</span>(error_type, message, attempted,
+                               partial_results=None, alternatives=None,
+                               is_retryable=True) -> dict:
+    <span class="kw">return</span> {
+        <span class="str">"isError"</span>: True,
+        <span class="str">"errorType"</span>: error_type,       <span class="cm"># transient/validation/permission/business</span>
+        <span class="str">"message"</span>: message,            <span class="cm"># Human-readable description</span>
+        <span class="str">"attemptedAction"</span>: attempted,  <span class="cm"># What was tried</span>
+        <span class="str">"isRetryable"</span>: is_retryable,   <span class="cm"># Should coordinator retry?</span>
+        <span class="str">"partialResults"</span>: partial_results <span class="kw">or</span> [],   <span class="cm"># Results before failure</span>
+        <span class="str">"suggestedAlternatives"</span>: alternatives <span class="kw">or</span> [],  <span class="cm"># Other approaches</span>
+        <span class="str">"timestamp"</span>: datetime.utcnow().isoformat()
+    }</code></pre>
+
+      <h3>Coverage Annotations in Synthesis</h3>
+      <p>When a subagent fails, the synthesis output must mark which areas lack coverage. Coordinators and end users need to know what's well-supported vs. uncertain.</p>
+      <pre><code>{
+    <span class="str">"synthesis"</span>: generate_synthesis(findings),
+    <span class="str">"coverage_map"</span>: {
+        <span class="str">"remote_work_trends"</span>: {<span class="str">"status"</span>: <span class="str">"well-covered"</span>, <span class="str">"confidence"</span>: <span class="str">"high"</span>},
+        <span class="str">"urban_vacancy_rates"</span>: {<span class="str">"status"</span>: <span class="str">"incomplete"</span>, <span class="str">"confidence"</span>: <span class="str">"low"</span>,
+                                  <span class="str">"reason"</span>: <span class="str">"Search API timed out"</span>}
+    },
+    <span class="str">"note"</span>: <span class="str">"Topics in coverage_gaps had source failures. Treat claims with caution."</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- 5.4 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">5.4</span>
+      <h2>Context in Large Codebase Exploration</h2>
+    </div>
+    <div class="task-body">
+      <h3>Scratchpad Files</h3>
+      <p>When context fills up during extended exploration, scratchpad files persist findings across context boundaries and survive context window limits.</p>
+      <pre><code><span class="cm"># Instruct Claude:</span>
+<span class="str">"As you explore the codebase, maintain a scratchpad at .claude/scratchpad.md.
+After each investigation phase, summarize key findings there. Before starting
+each new phase, read the scratchpad to refresh your memory of prior findings."</span></code></pre>
+
+      <h3>Crash Recovery with Manifests</h3>
+      <p>For long multi-agent workflows that might fail partway through, each agent exports its state to a known location after completing. On resume, load the manifest and inject prior agent states into prompts — agents that completed don't re-run.</p>
+
+      <h3>The /compact Command</h3>
+      <p>Use <code>/compact</code> during extended exploration to reduce context usage when verbose discovery output accumulates. Claude summarizes the conversation before continuing, freeing context for more exploration.</p>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">When to /compact</div>
+        <p>Context window is &gt;70% full during multi-phase exploration · You've completed one phase and are starting another · Verbose tool outputs are dominating the context</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5.5 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">5.5</span>
+      <h2>Human Review Workflows and Confidence Calibration</h2>
+    </div>
+    <div class="task-body">
+      <h3>The Aggregate Accuracy Trap</h3>
+      <p>Overall 97% accuracy sounds good — until you break it down by segment:</p>
+      <div class="accuracy-chart">
+        <div class="accuracy-row">
+          <span class="acc-label">Invoices from Vendor A</span>
+          <div class="acc-track"><div class="acc-fill acc-99"></div></div>
+          <span class="acc-pct" style="color: var(--green);">99.5%</span>
+        </div>
+        <div class="accuracy-row">
+          <span class="acc-label">Invoices from Vendor B</span>
+          <div class="acc-track"><div class="acc-fill acc-81"></div></div>
+          <span class="acc-pct" style="color: var(--red);">81%</span>
+        </div>
+        <div class="accuracy-row">
+          <span class="acc-label">Overall (masks Vendor B)</span>
+          <div class="acc-track"><div class="acc-fill acc-97"></div></div>
+          <span class="acc-pct" style="color: var(--yellow);">97%</span>
+        </div>
+      </div>
+      <p style="font-size: 0.85rem;"><strong>Always validate accuracy by document type AND field before automating.</strong></p>
+
+      <h3>Stratified Random Sampling</h3>
+      <div class="callout callout-warn">
+        <div class="callout-label">Don't audit only low-confidence extractions</div>
+        <p>You'll miss errors in extractions Claude was <em>incorrectly</em> confident about. Always sample high-confidence extractions too — catch miscalibrated confidence.</p>
+      </div>
+
+      <pre><code><span class="cm"># All low-confidence → human review</span>
+review_queue.extend([e <span class="kw">for</span> e <span class="kw">in</span> extractions
+    <span class="kw">if</span> e.get(<span class="str">"extraction_confidence"</span>) == <span class="str">"low"</span>])
+
+<span class="cm"># Random 5% sample of HIGH-confidence → catch miscalibrated confidence</span>
+high_confidence = [e <span class="kw">for</span> e <span class="kw">in</span> extractions
+    <span class="kw">if</span> e.get(<span class="str">"extraction_confidence"</span>) == <span class="str">"high"</span>]
+review_queue.extend(random.sample(high_confidence, sample_size))
+
+<span class="cm"># All extractions from historically high-error vendors → always review</span>
+review_queue.extend([e <span class="kw">for</span> e <span class="kw">in</span> extractions
+    <span class="kw">if</span> e.get(<span class="str">"vendor_name"</span>) <span class="kw">in</span> high_risk_vendors])</code></pre>
+
+      <h3>Field-Level Confidence Routing</h3>
+      <p>Schema-level confidence is too coarse. Field-level confidence lets you route review attention precisely:</p>
+      <table>
+        <tr><th>Low-confidence fields</th><th>Routing</th></tr>
+        <tr><td>0 fields</td><td>auto_process</td></tr>
+        <tr><td>1 field</td><td>spot_check — human reviews just that field</td></tr>
+        <tr><td>2+ fields</td><td>full_review — human reviews entire extraction</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5.6 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">5.6</span>
+      <h2>Information Provenance in Multi-Source Synthesis</h2>
+    </div>
+    <div class="task-body">
+      <h3>Claim-Source Mappings Must Be Preserved</h3>
+      <div class="callout callout-danger">
+        <div class="callout-label">Attribution Lost in Summarization</div>
+        <p><code>"Remote work has caused urban office vacancies to rise"</code> — Which source? Publication date? Methodology? All lost. Cannot be recovered.</p>
+      </div>
+
+      <pre><code><span class="cm"># RIGHT: Structured claim-source mapping</span>
+{
+    <span class="str">"claim"</span>: <span class="str">"Office vacancy rates in major CBDs hit 22% in Q4 2023"</span>,
+    <span class="str">"source_url"</span>: <span class="str">"https://..."</span>,
+    <span class="str">"source_title"</span>: <span class="str">"Remote Work Exodus: Cities Losing Downtown Tenants"</span>,
+    <span class="str">"publication_date"</span>: <span class="str">"2024-02-15"</span>,
+    <span class="str">"confidence"</span>: <span class="str">"high"</span>,
+    <span class="str">"excerpt"</span>: <span class="str">"office vacancy rates hit 22% in Q4 2023, highest since 2008"</span>
+}</code></pre>
+
+      <h3>Handling Conflicting Statistics</h3>
+      <p>When two credible sources report different numbers, do <strong>NOT</strong> pick one. Annotate both with attribution and let the coordinator or human decide:</p>
+      <pre><code>{
+    <span class="str">"conflict_detected"</span>: True,
+    <span class="str">"value_a"</span>: {<span class="str">"value"</span>: <span class="str">"18%"</span>, <span class="str">"source"</span>: <span class="str">"..."</span>, <span class="str">"date"</span>: <span class="str">"2023-03-01"</span>},
+    <span class="str">"value_b"</span>: {<span class="str">"value"</span>: <span class="str">"22%"</span>, <span class="str">"source"</span>: <span class="str">"..."</span>, <span class="str">"date"</span>: <span class="str">"2023-12-01"</span>},
+    <span class="str">"possible_explanation"</span>: <span class="str">"Sources are 9 months apart — values may reflect different time periods"</span>,
+    <span class="str">"resolution"</span>: <span class="str">"human_review_required"</span>
+}</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Temporal Data — Always Require Dates</div>
+        <p>Without dates: "18% vacancy" vs "22% vacancy" looks like a contradiction. With dates: Q1 2023 vs Q4 2023 reveals a trend. What looks like a conflict may just be data from different time periods.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">∑</span>
+      <h2>Key Concepts Summary</h2>
+    </div>
+    <div class="task-body">
+      <div class="summary-grid">
+        <div class="summary-item"><div class="key">Case facts block</div><div class="val">Extract transactional specifics outside summarized history</div></div>
+        <div class="summary-item"><div class="key">Progressive summarization risk</div><div class="val">Precision values (amounts, dates, IDs) lost in summaries</div></div>
+        <div class="summary-item"><div class="key">Lost in the middle</div><div class="val">Information in middle of long context gets less attention</div></div>
+        <div class="summary-item"><div class="key">Tool result trimming</div><div class="val">Keep only relevant fields before appending to context</div></div>
+        <div class="summary-item"><div class="key">Escalation triggers</div><div class="val">Explicit customer request; policy gap; inability to progress</div></div>
+        <div class="summary-item"><div class="key">Escalation anti-patterns</div><div class="val">Sentiment-based, confidence-score-based</div></div>
+        <div class="summary-item"><div class="key">Structured error propagation</div><div class="val">errorType, attempted, partial_results, alternatives, isRetryable</div></div>
+        <div class="summary-item"><div class="key">Coverage annotations</div><div class="val">Mark which findings are well-supported vs. gap areas</div></div>
+        <div class="summary-item"><div class="key">Scratchpad files</div><div class="val">Persist findings across context boundaries</div></div>
+        <div class="summary-item"><div class="key">Aggregate accuracy trap</div><div class="val">97% overall may mask poor performance on specific segments</div></div>
+        <div class="summary-item"><div class="key">Stratified sampling</div><div class="val">Sample high-confidence extractions too — catch miscalibration</div></div>
+        <div class="summary-item"><div class="key">Conflicting statistics</div><div class="val">Annotate both values with source; don't arbitrarily choose one</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exam-section">
+    <h2>What the Exam Will Test You On</h2>
+    <div class="exam-q">
+      <div class="q">"After summarizing a long support conversation, the agent forgot the refund amount. Why?"</div>
+      <div class="a">Progressive summarization lost precision values — fix: case facts block outside summarized history</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Your multi-source report presents 22% vacancy when one source says 18% and another says 22%. How should it have handled this?"</div>
+      <div class="a">Both values preserved with source attribution; conflict annotated; reader decides</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Overall extraction accuracy is 97% but stakeholders aren't satisfied. What might they be seeing?"</div>
+      <div class="a">Accuracy by segment reveals poor performance on specific document types or fields</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"A subagent returns {results: []} after a database timeout. Why is this dangerous?"</div>
+      <div class="a">Coordinator treats it as "no results found" (success) instead of "query failed" (error) — cannot recover</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"A customer says 'fix my charge' then says 'actually I just want to talk to someone.' What should the agent do?"</div>
+      <div class="a">Escalate immediately — explicit customer request for a human overrides resolution attempts</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

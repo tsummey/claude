@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 1: Agentic Architecture & Orchestration</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2e3350;
+    --accent: #6c8aff;
+    --accent2: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #161b2e;
+    --green: #64ffda;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --orange: #f4a261;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1a1d27 0%, #161b2e 50%, #1a1d27 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+  .domain-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .weight-pill {
+    display: inline-block;
+    background: #ff6b6b22;
+    border: 1px solid #ff6b6b55;
+    color: var(--red);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+    margin-top: 0.5rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .overview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .overview-card p { color: var(--muted); margin-bottom: 0.75rem; }
+  .overview-card p:last-child { margin-bottom: 0; }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .scenario-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.7rem;
+    border-radius: 6px;
+  }
+  .task-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .task-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .task-num {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+  }
+  .task-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .task-body { padding: 1.5rem; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--accent2); margin: 1.5rem 0 0.75rem; }
+  h3:first-child { margin-top: 0; }
+  p { color: var(--muted); margin-bottom: 0.75rem; }
+  strong { color: var(--text); }
+  code {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    background: var(--code-bg);
+    color: var(--green);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: #cdd6f4;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .cm { color: #6c7086; font-style: italic; }
+  .fn { color: #89dceb; }
+  .num { color: #fab387; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--accent);
+    font-weight: 700;
+    text-align: left;
+    padding: 0.6rem 1rem;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  .callout {
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    border-left: 4px solid;
+  }
+  .callout-warn { background: #ffd16611; border-color: var(--yellow); }
+  .callout-warn p { color: #ffd16699; }
+  .callout-danger { background: #ff6b6b11; border-color: var(--red); }
+  .callout-danger p { color: #ff6b6b99; }
+  .callout-tip { background: #64ffda11; border-color: var(--green); }
+  .callout-tip p { color: #64ffda99; }
+  .callout-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .callout-warn .callout-label { color: var(--yellow); }
+  .callout-danger .callout-label { color: var(--red); }
+  .callout-tip .callout-label { color: var(--green); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .summary-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+  .summary-item .key { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .summary-item .val { font-size: 0.82rem; color: var(--muted); }
+  .exam-section {
+    background: linear-gradient(135deg, #ffd16611, #ff6b6b11);
+    border: 1px solid #ffd16633;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+  .exam-section h2 { color: var(--yellow); font-size: 1.1rem; margin-bottom: 1rem; }
+  .exam-q { margin-bottom: 1.25rem; }
+  .exam-q .q { color: var(--text); font-style: italic; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .exam-q .a { color: var(--green); font-size: 0.88rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  ul { padding-left: 1.5rem; color: var(--muted); margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.3rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Domain 1</div>
+  <h1>Agentic Architecture &amp; Orchestration</h1>
+  <div class="weight-pill">Exam Weight: 27% — Highest Priority</div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p>An <strong>agent</strong> is not just a model that answers questions — it is a model that <em>acts</em>: calling tools, observing results, reasoning about what to do next, and continuing until the task is complete. This domain tests whether you can diagnose and fix broken agentic systems.</p>
+    <p>The exam will present broken or poorly designed agentic systems and ask you to diagnose and fix them. Surface knowledge will not pass this exam.</p>
+    <div class="scenarios">
+      <span class="scenario-tag">Scenario 1: Customer Support</span>
+      <span class="scenario-tag">Scenario 3: Multi-Agent Research</span>
+      <span class="scenario-tag">Scenario 4: Developer Productivity</span>
+    </div>
+  </div>
+
+  <!-- 1.1 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.1</span>
+      <h2>The Agentic Loop</h2>
+    </div>
+    <div class="task-body">
+      <h3>What It Is</h3>
+      <p>The agentic loop is the heartbeat of every agent — the cycle of send → inspect <code>stop_reason</code> → execute tool → append result → repeat.</p>
+
+      <table>
+        <tr><th>stop_reason</th><th>Meaning</th><th>Your Action</th></tr>
+        <tr><td><code>"tool_use"</code></td><td>Claude wants to call a tool</td><td>Execute, append result, loop again</td></tr>
+        <tr><td><code>"end_turn"</code></td><td>Claude is finished</td><td>Return the response to the user</td></tr>
+      </table>
+
+      <h3>The Correct Loop in Python</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">run_agent</span>(user_message: str, tools: list) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    <span class="kw">while</span> True:
+        response = client.messages.create(
+            model=<span class="str">"claude-opus-4-5"</span>,
+            max_tokens=<span class="num">4096</span>,
+            tools=tools,
+            messages=messages
+        )
+
+        <span class="kw">if</span> response.stop_reason == <span class="str">"end_turn"</span>:
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>):
+                    <span class="kw">return</span> block.text
+
+        <span class="kw">elif</span> response.stop_reason == <span class="str">"tool_use"</span>:
+            messages.append({"role": "assistant", "content": response.content})
+
+            tool_results = []
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    result = execute_tool(block.name, block.input)
+                    tool_results.append({
+                        "type": <span class="str">"tool_result"</span>,
+                        "tool_use_id": block.id,
+                        "content": result
+                    })
+
+            messages.append({"role": "user", "content": tool_results})
+            <span class="cm"># Loop continues</span></code></pre>
+
+      <h3>Anti-Patterns (Will Be on the Exam)</h3>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Anti-Pattern 1 — Natural Language Termination</div>
+        <p><code>if "I have completed" in response.text: break</code> — Claude might say "I have completed the first step" mid-task. Use <code>stop_reason</code>.</p>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Anti-Pattern 2 — Iteration Cap as Primary Stop</div>
+        <p><code>for i in range(10): response = call_claude()</code> — Complex tasks may need more iterations. A safety cap alongside <code>stop_reason</code> is OK; as <em>primary</em> mechanism it is not.</p>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Anti-Pattern 3 — Content Type as Completion</div>
+        <p><code>if response.content[0].type == "text": return</code> — Claude can return mixed text + tool_use in one response. Always check <code>stop_reason</code>.</p>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Anti-Pattern 4 — Not Appending Tool Results</div>
+        <p>Executing a tool but not adding its result to <code>messages</code>. Claude has no memory between API calls — it will repeat the call or hallucinate.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.2 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.2</span>
+      <h2>Multi-Agent Orchestration: Coordinator-Subagent Pattern</h2>
+    </div>
+    <div class="task-body">
+      <pre><code>                ┌─────────────────────┐
+                │   COORDINATOR AGENT │
+                │  - Decomposes task  │
+                │  - Routes to agents │
+                │  - Aggregates results│
+                └──────────┬──────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+┌─────────▼──────┐ ┌───────▼──────┐ ┌──────▼───────┐
+│  WEB SEARCH    │ │   DOCUMENT   │ │  SYNTHESIS   │
+│    AGENT       │ │   ANALYSIS   │ │    AGENT     │
+└────────────────┘ └──────────────┘ └──────────────┘</code></pre>
+
+      <h3>Critical Rules</h3>
+      <ul>
+        <li><strong>Subagents have isolated context</strong> — they do NOT inherit the coordinator's history. Pass everything explicitly.</li>
+        <li><strong>All communication routes through the coordinator</strong> — subagents never talk to each other directly.</li>
+        <li><strong>The coordinator owns task decomposition</strong> — narrow decomposition produces correct but incomplete output.</li>
+        <li><strong>The coordinator owns error handling</strong> — retry, use partial results, skip and annotate, or escalate.</li>
+      </ul>
+
+      <h3>Iterative Refinement</h3>
+      <pre><code>Pass 1: Broad research → Synthesis
+         ↓
+Coordinator: "Missing coverage of Topic X"
+         ↓
+Pass 2: Targeted query on Topic X → Re-synthesis
+         ↓
+Final Report</code></pre>
+    </div>
+  </div>
+
+  <!-- 1.3 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.3</span>
+      <h2>Subagent Invocation, Context Passing &amp; Spawning</h2>
+    </div>
+    <div class="task-body">
+      <h3>Context Injection — Most Common Exam Topic</h3>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Wrong — Implicit Context</div>
+        <p><code>invoke_subagent("synthesis_agent", {"instruction": "Synthesize the research findings"})</code> — What findings? The subagent has no idea.</p>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Correct — Explicit Context</div>
+        <p>Pass <code>web_search_results</code>, <code>document_analysis_results</code>, <code>source_metadata</code>, <code>research_query</code>, and <code>quality_criteria</code> all explicitly in the subagent prompt.</p>
+      </div>
+
+      <h3>Parallel Subagent Spawning</h3>
+      <p>Emit <strong>multiple Task tool calls in a single coordinator response</strong> — not across separate turns. Sequential spawning wastes time for independent tasks.</p>
+
+      <h3>Coordinator Prompt Design</h3>
+      <table>
+        <tr><th>Type</th><th>Example</th></tr>
+        <tr><td>Weak (procedural)</td><td>"Step 1: Call web_search with query X. Step 2: Call doc_analysis..."</td></tr>
+        <tr><td>Strong (goal-oriented)</td><td>"Research comprehensively. Ensure coverage spans all subtopics. Every claim must trace to a source."</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 1.4 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.4</span>
+      <h2>Multi-Step Workflows with Enforcement and Handoff</h2>
+    </div>
+    <div class="task-body">
+      <h3>Core Insight: Prompts Are Probabilistic, Code Is Deterministic</h3>
+
+      <table>
+        <tr><th>Approach</th><th>Compliance Rate</th><th>Use When</th></tr>
+        <tr><td>Prompt instruction</td><td>~95-99%</td><td>Low-stakes guidance</td></tr>
+        <tr><td>Few-shot examples</td><td>~97-99%</td><td>Moderate consistency needs</td></tr>
+        <tr><td>Programmatic enforcement</td><td>100%</td><td>Business-critical sequences</td></tr>
+      </table>
+
+      <h3>Programmatic Prerequisites</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">execute_tool</span>(tool_name: str, tool_input: dict) -> dict:
+    <span class="kw">if</span> tool_name == <span class="str">"lookup_order"</span>:
+        <span class="kw">if</span> state.verified_customer_id <span class="kw">is</span> None:
+            <span class="kw">return</span> {
+                "error": <span class="str">"Cannot lookup order: customer identity not verified."</span>,
+                "required_action": <span class="str">"Call get_customer first."</span>,
+                "isRetryable": False
+            }
+
+    <span class="kw">if</span> tool_name == <span class="str">"process_refund"</span>:
+        <span class="kw">if</span> tool_input.get(<span class="str">"amount"</span>, <span class="num">0</span>) > <span class="num">500</span>:
+            <span class="kw">return</span> {
+                "error": <span class="str">"Refund exceeds $500 automated threshold."</span>,
+                "action": <span class="str">"escalate_to_human"</span>,
+                "isRetryable": False
+            }
+    <span class="kw">return</span> call_actual_tool(tool_name, tool_input)</code></pre>
+    </div>
+  </div>
+
+  <!-- 1.5 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.5</span>
+      <h2>Agent SDK Hooks</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Hook</th><th>Fires When</th><th>Use Case</th></tr>
+        <tr><td><code>PreToolUse</code></td><td>Before a tool call executes</td><td>Block policy violations, validate inputs</td></tr>
+        <tr><td><code>PostToolUse</code></td><td>After a tool call returns</td><td>Normalize data formats, enrich results</td></tr>
+      </table>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Hooks vs. Prompts — Exam Rule</div>
+        <p>Use <strong>hooks</strong> for: financial thresholds, identity verification before sensitive ops, compliance requirements, any rule needing 100% enforcement. Use <strong>prompts</strong> for: style preferences, guidelines, rules where occasional non-compliance is acceptable.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.6 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.6</span>
+      <h2>Task Decomposition Strategies</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Pattern</th><th>Use When</th><th>Best For</th></tr>
+        <tr><td><strong>Prompt Chaining</strong></td><td>Predictable structure, each step output → next step input, sequence never changes</td><td>Code review pipelines, document processing</td></tr>
+        <tr><td><strong>Dynamic Adaptive</strong></td><td>Open-ended, intermediate findings determine next steps, full plan unknown upfront</td><td>Codebase investigation, debugging, open research</td></tr>
+      </table>
+
+      <h3>The Code Review Split Pattern</h3>
+      <pre><code>Step 1: Per-file local analysis (N parallel calls, one per file)
+         → Each call sees only one file → focused, deep analysis
+
+Step 2: Cross-file integration pass (one call with all per-file summaries)
+         → Data flow bugs, interface mismatches, architectural violations</code></pre>
+    </div>
+  </div>
+
+  <!-- 1.7 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">1.7</span>
+      <h2>Session State, Resumption &amp; Forking</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Situation</th><th>Best Approach</th></tr>
+        <tr><td>Prior context still valid, continuing same investigation</td><td>Resume session</td></tr>
+        <tr><td>Code has changed significantly since last session</td><td>New session + inject summary</td></tr>
+        <tr><td>Prior tool results are stale</td><td>New session + structured summary</td></tr>
+        <tr><td>Exploring a divergent approach</td><td><code>fork_session</code></td></tr>
+        <tr><td>Context window is nearly full</td><td>New session + <code>/compact</code> first</td></tr>
+      </table>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">When Resuming After Code Changes</div>
+        <p>Tell the agent explicitly what changed. Don't just resume and ask the same question — Claude will reason from stale tool results.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">∑</span>
+      <h2>Key Concepts Summary</h2>
+    </div>
+    <div class="task-body">
+      <div class="summary-grid">
+        <div class="summary-item"><div class="key">stop_reason</div><div class="val">The ONLY correct loop termination signal</div></div>
+        <div class="summary-item"><div class="key">Tool result in history</div><div class="val">Must be appended or Claude repeats tool calls</div></div>
+        <div class="summary-item"><div class="key">Subagent context isolation</div><div class="val">Pass everything explicitly in prompt</div></div>
+        <div class="summary-item"><div class="key">Parallel spawning</div><div class="val">Multiple Task calls in ONE coordinator response</div></div>
+        <div class="summary-item"><div class="key">Programmatic enforcement</div><div class="val">Use for 100% compliance (financial, identity, safety)</div></div>
+        <div class="summary-item"><div class="key">Hooks</div><div class="val">PreToolUse (block/validate), PostToolUse (normalize/enrich)</div></div>
+        <div class="summary-item"><div class="key">Prompt chaining</div><div class="val">Fixed structure, predictable tasks</div></div>
+        <div class="summary-item"><div class="key">Dynamic decomposition</div><div class="val">Open-ended, findings-driven tasks</div></div>
+        <div class="summary-item"><div class="key">Session resumption</div><div class="val">Tell Claude what changed since last session</div></div>
+        <div class="summary-item"><div class="key">fork_session</div><div class="val">Explore divergent approaches from shared baseline</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exam -->
+  <div class="exam-section">
+    <h2>What the Exam Will Test You On</h2>
+    <div class="exam-q">
+      <div class="q">"Your agent skips identity verification 12% of the time. What do you do?"</div>
+      <div class="a">Programmatic prerequisite gate — not a better prompt</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Your multi-agent research system covers only visual arts when asked about creative industries. Why?"</div>
+      <div class="a">Coordinator's task decomposition is too narrow</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Your code review produces contradictory feedback across files. How do you fix it?"</div>
+      <div class="a">Split into per-file passes + separate integration pass</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"A subagent times out. What error structure enables intelligent coordinator recovery?"</div>
+      <div class="a">Structured error with failure_type, attempted_query, partial_results, alternatives, isRetryable</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 3: Claude Code Configuration & Workflows</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2e3350;
+    --accent: #34d399;
+    --accent2: #6ee7b7;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #161b2e;
+    --green: #64ffda;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --orange: #f4a261;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .hero {
+    background: linear-gradient(135deg, #1a1d27 0%, #0c1e18 50%, #1a1d27 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+  .domain-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .weight-pill {
+    display: inline-block;
+    background: #34d39922;
+    border: 1px solid #34d39955;
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+    margin-top: 0.5rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .overview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .overview-card p { color: var(--muted); margin-bottom: 0.75rem; }
+  .overview-card p:last-child { margin-bottom: 0; }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .scenario-tag { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 6px; }
+  .task-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; overflow: hidden; }
+  .task-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .task-num { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+  .task-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .task-body { padding: 1.5rem; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--accent2); margin: 1.5rem 0 0.75rem; }
+  h3:first-child { margin-top: 0; }
+  p { color: var(--muted); margin-bottom: 0.75rem; }
+  strong { color: var(--text); }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; background: var(--code-bg); color: var(--green); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.88em; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 0.84rem; line-height: 1.6; color: #cdd6f4; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .cm { color: #6c7086; font-style: italic; }
+  .fn { color: #89dceb; }
+  .num { color: #fab387; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: var(--surface2); color: var(--accent); font-weight: 700; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--border); }
+  td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  .callout { border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; border-left: 4px solid; }
+  .callout-warn { background: #ffd16611; border-color: var(--yellow); }
+  .callout-warn p { color: #ffd16699; }
+  .callout-danger { background: #ff6b6b11; border-color: var(--red); }
+  .callout-danger p { color: #ff6b6b99; }
+  .callout-tip { background: #34d39911; border-color: var(--accent); }
+  .callout-tip p { color: #34d39999; }
+  .callout-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .callout-warn .callout-label { color: var(--yellow); }
+  .callout-danger .callout-label { color: var(--red); }
+  .callout-tip .callout-label { color: var(--accent); }
+  .hierarchy {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+  .hierarchy-level {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    align-items: flex-start;
+  }
+  .hierarchy-level:last-child { margin-bottom: 0; }
+  .h-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+  }
+  .h-user { background: #6c8aff22; color: #6c8aff; border: 1px solid #6c8aff55; }
+  .h-project { background: #34d39922; color: var(--accent); border: 1px solid #34d39955; }
+  .h-dir { background: #ffd16622; color: var(--yellow); border: 1px solid #ffd16655; }
+  .h-path { font-family: 'Cascadia Code', monospace; font-size: 0.82rem; color: var(--muted); }
+  .h-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.15rem; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .summary-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .summary-item .key { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .summary-item .val { font-size: 0.82rem; color: var(--muted); }
+  .exam-section { background: linear-gradient(135deg, #ffd16611, #34d39911); border: 1px solid #ffd16633; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+  .exam-section h2 { color: var(--yellow); font-size: 1.1rem; margin-bottom: 1rem; }
+  .exam-q { margin-bottom: 1.25rem; }
+  .exam-q .q { color: var(--text); font-style: italic; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .exam-q .a { color: var(--green); font-size: 0.88rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  ul { padding-left: 1.5rem; color: var(--muted); margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.3rem; }
+  .plan-flow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .plan-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .plan-box .plan-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .plan-box.direct .plan-label { color: var(--accent); }
+  .plan-box.plan .plan-label { color: var(--yellow); }
+  .plan-box ul { color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Domain 3</div>
+  <h1>Claude Code Configuration &amp; Workflows</h1>
+  <div class="weight-pill">Exam Weight: 20%</div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p>Claude Code is not just a coding assistant — it is a configurable, extensible development platform. This domain tests the full configuration hierarchy, team workflow design, plan mode vs. direct execution, and CI/CD integration.</p>
+    <div class="scenarios">
+      <span class="scenario-tag">Scenario 2: Code Generation</span>
+      <span class="scenario-tag">Scenario 4: Developer Productivity</span>
+      <span class="scenario-tag">Scenario 5: Claude Code for CI/CD</span>
+    </div>
+  </div>
+
+  <!-- 3.1 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">3.1</span>
+      <h2>CLAUDE.md Configuration Hierarchy</h2>
+    </div>
+    <div class="task-body">
+      <h3>The Three Levels</h3>
+      <div class="hierarchy">
+        <div class="hierarchy-level">
+          <span class="h-badge h-user">USER</span>
+          <div>
+            <div class="h-path">~/.claude/CLAUDE.md</div>
+            <div class="h-desc">Personal only, NOT version controlled. Only applies to YOUR sessions. Teammates never see this.</div>
+          </div>
+        </div>
+        <div class="hierarchy-level">
+          <span class="h-badge h-project">PROJECT</span>
+          <div>
+            <div class="h-path">project/.claude/CLAUDE.md &nbsp;or&nbsp; project/CLAUDE.md</div>
+            <div class="h-desc">Version controlled, team-wide. All developers who clone the repo get this. This is where team standards live.</div>
+          </div>
+        </div>
+        <div class="hierarchy-level">
+          <span class="h-badge h-dir">DIRECTORY</span>
+          <div>
+            <div class="h-path">project/src/CLAUDE.md</div>
+            <div class="h-desc">Applies when working in that directory. Overrides project-level for files in that subdirectory.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">#1 Team Configuration Mistake</div>
+        <p>A developer puts team standards in <code>~/.claude/CLAUDE.md</code>. New teammates clone the repo — they don't get the standards. Claude behaves differently for every developer. <strong>Fix:</strong> Move standards to project-level <code>.claude/CLAUDE.md</code>. Diagnose with <code>/memory</code> command.</p>
+      </div>
+
+      <h3>The @import Syntax</h3>
+      <pre><code><span class="cm"># In packages/billing/CLAUDE.md</span>
+@import ../../docs/shared-standards.md
+@import ../../docs/billing-specific-rules.md
+@import ../../docs/pci-compliance-rules.md
+<span class="cm"># Note: NOT importing frontend-standards.md — not relevant here</span></code></pre>
+
+      <h3>.claude/rules/ — Topic-Specific Organization</h3>
+      <pre><code>.claude/rules/
+├── testing.md          <span class="cm"># Test conventions, fixture patterns, coverage</span>
+├── api-conventions.md  <span class="cm"># REST design, versioning, error formats</span>
+├── database.md         <span class="cm"># ORM patterns, migration rules</span>
+├── security.md         <span class="cm"># Auth, input validation, secret handling</span>
+└── deployment.md       <span class="cm"># CI/CD standards, rollback procedures</span></code></pre>
+    </div>
+  </div>
+
+  <!-- 3.2 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">3.2</span>
+      <h2>Custom Slash Commands and Skills</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Feature</th><th>Commands (.claude/commands/)</th><th>Skills (.claude/skills/)</th></tr>
+        <tr><td>Invocation</td><td><code>/command-name</code></td><td><code>/skill-name</code></td></tr>
+        <tr><td>Isolation</td><td>Runs in main conversation</td><td>Can run isolated (context: fork)</td></tr>
+        <tr><td>Tool restriction</td><td>No</td><td>Yes (allowed-tools)</td></tr>
+        <tr><td>Argument hint</td><td>No</td><td>Yes (argument-hint)</td></tr>
+        <tr><td>Best for</td><td>Simple prompts, one-off tasks</td><td>Complex workflows, reusable processes</td></tr>
+      </table>
+
+      <h3>Skills with Frontmatter</h3>
+      <pre><code><span class="cm">---</span>
+<span class="kw">context</span>: fork
+<span class="kw">allowed-tools</span>: Read, Grep, Glob
+<span class="kw">argument-hint</span>: <span class="str">"component name or 'all'"</span>
+<span class="cm">---</span>
+
+<span class="cm"># Skill: Analyze Component</span>
+
+Analyze the component specified: $ARGUMENTS
+
+1. Use Glob to find all files related to this component
+2. Use Read to examine each file
+3. Use Grep to find all callers and consumers
+4. Produce a dependency map and complexity assessment</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">context: fork — When to Use</div>
+        <p>Use when the skill does a lot of exploratory work (reading many files, running many searches). Verbose output stays out of main session. Only the final summary returns to the main conversation.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.3 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">3.3</span>
+      <h2>Path-Specific Rules</h2>
+    </div>
+    <div class="task-body">
+      <p>CLAUDE.md files are directory-bound. If test files are scattered throughout the codebase, use <strong>.claude/rules/ with YAML frontmatter</strong> to apply rules by file type across many directories.</p>
+
+      <pre><code><span class="cm">---</span>
+<span class="kw">paths</span>:
+  - <span class="str">"**/*.test.tsx"</span>
+  - <span class="str">"**/*.test.ts"</span>
+  - <span class="str">"**/__tests__/**/*"</span>
+<span class="cm">---</span>
+
+<span class="cm"># Testing Conventions</span>
+- One describe block per component/function
+- Use it() not test() for consistency
+- Arrange-Act-Assert pattern for all test cases</code></pre>
+
+      <table>
+        <tr><th>Scenario</th><th>Use</th></tr>
+        <tr><td>Convention applies to files in ONE directory</td><td>Directory <code>CLAUDE.md</code></td></tr>
+        <tr><td>Convention applies to files by TYPE across many directories</td><td><code>.claude/rules/</code> with glob</td></tr>
+        <tr><td>Convention applies to all test files regardless of location</td><td><code>.claude/rules/</code> with <code>**/*.test.*</code></td></tr>
+        <tr><td>Convention applies to all Terraform files regardless of location</td><td><code>.claude/rules/</code> with <code>**/*.tf</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3.4 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">3.4</span>
+      <h2>Plan Mode vs. Direct Execution</h2>
+    </div>
+    <div class="task-body">
+      <div class="plan-flow">
+        <div class="plan-box direct">
+          <div class="plan-label">Direct Execution</div>
+          <ul>
+            <li>Fix a specific bug (stack trace provided)</li>
+            <li>Add input validation to one function</li>
+            <li>Update a config value</li>
+            <li>Well-understood, clear scope</li>
+          </ul>
+        </div>
+        <div class="plan-box plan">
+          <div class="plan-label">Plan Mode</div>
+          <ul>
+            <li>Restructure monolith into microservices</li>
+            <li>Migrate library (45+ files affected)</li>
+            <li>Add comprehensive test coverage to legacy codebase</li>
+            <li>New feature with multiple valid approaches</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>What Plan Mode Does</h3>
+      <p>Claude explores the codebase, identifies all affected areas, considers multiple approaches, and presents a structured plan. <strong>It does NOT make any changes until you approve.</strong></p>
+
+      <h3>The Explore Subagent</h3>
+      <p>For tasks requiring extensive codebase discovery before planning, Explore runs in an isolated context — only returning a structured summary to the main session, leaving plenty of room for implementation.</p>
+
+      <h3>Expert Workflow: Plan Mode + Direct Execution</h3>
+      <pre><code>1. Enter plan mode → understand codebase, design approach
+2. Approve the plan
+3. Switch to direct execution → implement the approved plan
+<span class="cm"># Each implementation step has clear scope because the plan defined it</span></code></pre>
+    </div>
+  </div>
+
+  <!-- 3.5 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">3.5</span>
+      <h2>Iterative Refinement Techniques</h2>
+    </div>
+    <div class="task-body">
+      <h3>When Prose Fails, Use Examples</h3>
+      <pre><code><span class="cm"># WEAK: Prose description (interpreted inconsistently)</span>
+<span class="str">"Normalize the phone number to a standard format"</span>
+
+<span class="cm"># STRONG: Concrete examples (unambiguous)</span>
+<span class="str">"""
+Input: "555-123-4567"     → Output: "+15551234567"
+Input: "(555) 123-4567"   → Output: "+15551234567"
+Input: "not a phone"      → Output: null
+"""</span></code></pre>
+
+      <h3>The Interview Pattern</h3>
+      <p>Before implementing a complex feature, ask Claude to interview you first: <em>"Before implementing this caching layer, ask me questions about requirements, edge cases, and constraints."</em> Answer these FIRST, then implement.</p>
+
+      <h3>Sequential vs. Parallel Issue Resolution</h3>
+      <pre><code><span class="cm"># Issues that INTERACT → fix all in ONE message</span>
+<span class="str">"Fix these two issues together. They interact: [issue 1] [issue 2]"</span>
+
+<span class="cm"># Issues that are INDEPENDENT → fix sequentially</span>
+<span class="str">"Fix issue 1 first."</span>
+<span class="cm"># (After fix) "Now fix issue 2."</span>
+<span class="cm"># Sequential lets you verify each fix before the next</span></code></pre>
+    </div>
+  </div>
+
+  <!-- 3.6 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">3.6</span>
+      <h2>CI/CD Integration</h2>
+    </div>
+    <div class="task-body">
+      <h3>The -p Flag — Non-Interactive Mode</h3>
+      <div class="callout callout-danger">
+        <div class="callout-label">The #1 CI/CD Requirement</div>
+        <p>Without <code>-p</code>, the job hangs forever waiting for user input.</p>
+      </div>
+      <pre><code><span class="cm"># WRONG: Hangs in CI</span>
+claude <span class="str">"Review this PR for security issues"</span>
+
+<span class="cm"># CORRECT: Non-interactive, outputs to stdout, exits</span>
+claude -p <span class="str">"Review this PR for security issues"</span>
+
+<span class="cm"># With structured JSON output for automated processing</span>
+claude -p <span class="str">"Analyze the diff for security vulnerabilities"</span> \
+  --output-format json \
+  --json-schema ./schemas/security-review-schema.json</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Session Isolation for Code Review</div>
+        <p>Always use a <strong>fresh Claude instance</strong> to review code. A session that wrote the code retains reasoning context and is less likely to question its own decisions. In CI, this happens naturally — every job starts fresh.</p>
+      </div>
+
+      <h3>Avoiding Duplicate Comments on Re-runs</h3>
+      <pre><code>claude -p <span class="str">"Review the NEW changes in this PR.
+Prior findings below — only report NEW or UNFIXED issues.
+
+Prior findings:
+$(cat prior_findings.json)
+
+New diff:
+$(git diff main...HEAD)"</span> \
+  --output-format json</code></pre>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">∑</span>
+      <h2>Key Concepts Summary</h2>
+    </div>
+    <div class="task-body">
+      <div class="summary-grid">
+        <div class="summary-item"><div class="key">CLAUDE.md hierarchy</div><div class="val">user (personal) → project (team) → directory (local)</div></div>
+        <div class="summary-item"><div class="key">@import</div><div class="val">Keeps CLAUDE.md modular; includes domain-specific standards</div></div>
+        <div class="summary-item"><div class="key">.claude/rules/</div><div class="val">Path-scoped rules with YAML frontmatter glob patterns</div></div>
+        <div class="summary-item"><div class="key">Project commands</div><div class="val">.claude/commands/ → version controlled, team-wide</div></div>
+        <div class="summary-item"><div class="key">context: fork</div><div class="val">Skill runs isolated; verbose output doesn't pollute main session</div></div>
+        <div class="summary-item"><div class="key">Plan mode</div><div class="val">Complex tasks with architectural implications; no changes until approved</div></div>
+        <div class="summary-item"><div class="key">Direct execution</div><div class="val">Well-understood, clear-scope tasks</div></div>
+        <div class="summary-item"><div class="key">-p / --print</div><div class="val">Non-interactive mode for CI/CD — without it, jobs hang</div></div>
+        <div class="summary-item"><div class="key">--output-format json</div><div class="val">Machine-parseable output for automated processing</div></div>
+        <div class="summary-item"><div class="key">Session isolation</div><div class="val">Fresh session reviews code better than the session that wrote it</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exam-section">
+    <h2>What the Exam Will Test You On</h2>
+    <div class="exam-q">
+      <div class="q">"A new developer cloned the repo but Claude doesn't follow team coding standards. Why?"</div>
+      <div class="a">Standards are in ~/.claude/CLAUDE.md (user-level), not project-level</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"You want test conventions applied to all test files regardless of directory. Best approach?"</div>
+      <div class="a">.claude/rules/ with paths: ["**/*.test.*"] glob pattern</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Your CI job hangs when running Claude Code. What's the fix?"</div>
+      <div class="a">Add the -p flag for non-interactive mode</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"A skill produces verbose output that fills the context window. How do you fix it?"</div>
+      <div class="a">Set context: fork in the skill's YAML frontmatter</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

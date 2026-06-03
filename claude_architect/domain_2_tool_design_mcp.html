@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 2: Tool Design & MCP Integration</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2e3350;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #161b2e;
+    --green: #64ffda;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --orange: #f4a261;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .hero {
+    background: linear-gradient(135deg, #1a1d27 0%, #0c1628 50%, #1a1d27 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+  .domain-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .weight-pill {
+    display: inline-block;
+    background: #38bdf822;
+    border: 1px solid #38bdf855;
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+    margin-top: 0.5rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .overview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .overview-card p { color: var(--muted); margin-bottom: 0.75rem; }
+  .overview-card p:last-child { margin-bottom: 0; }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .scenario-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.7rem;
+    border-radius: 6px;
+  }
+  .task-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .task-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .task-num {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+  }
+  .task-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .task-body { padding: 1.5rem; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--accent2); margin: 1.5rem 0 0.75rem; }
+  h3:first-child { margin-top: 0; }
+  p { color: var(--muted); margin-bottom: 0.75rem; }
+  strong { color: var(--text); }
+  code {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    background: var(--code-bg);
+    color: var(--green);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: #cdd6f4;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .cm { color: #6c7086; font-style: italic; }
+  .fn { color: #89dceb; }
+  .num { color: #fab387; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: var(--surface2); color: var(--accent); font-weight: 700; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--border); }
+  td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  .callout { border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; border-left: 4px solid; }
+  .callout-warn { background: #ffd16611; border-color: var(--yellow); }
+  .callout-warn p { color: #ffd16699; }
+  .callout-danger { background: #ff6b6b11; border-color: var(--red); }
+  .callout-danger p { color: #ff6b6b99; }
+  .callout-tip { background: #64ffda11; border-color: var(--green); }
+  .callout-tip p { color: #64ffda99; }
+  .callout-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .callout-warn .callout-label { color: var(--yellow); }
+  .callout-danger .callout-label { color: var(--red); }
+  .callout-tip .callout-label { color: var(--green); }
+  .five-elements {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .element-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  .element-num {
+    background: var(--accent);
+    color: #000;
+    font-size: 0.72rem;
+    font-weight: 800;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .element-card .label { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+  .element-card .desc { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .summary-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .summary-item .key { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .summary-item .val { font-size: 0.82rem; color: var(--muted); }
+  .exam-section { background: linear-gradient(135deg, #ffd16611, #38bdf811); border: 1px solid #ffd16633; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+  .exam-section h2 { color: var(--yellow); font-size: 1.1rem; margin-bottom: 1rem; }
+  .exam-q { margin-bottom: 1.25rem; }
+  .exam-q .q { color: var(--text); font-style: italic; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .exam-q .a { color: var(--green); font-size: 0.88rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  ul { padding-left: 1.5rem; color: var(--muted); margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.3rem; }
+  .error-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .error-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .error-card .cat { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .error-card .cat.transient { color: #38bdf8; }
+  .error-card .cat.validation { color: #ffd166; }
+  .error-card .cat.permission { color: #ff6b6b; }
+  .error-card .cat.business { color: #f4a261; }
+  .error-card .cause { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.25rem; }
+  .error-card .response { font-size: 0.82rem; color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Domain 2</div>
+  <h1>Tool Design &amp; MCP Integration</h1>
+  <div class="weight-pill">Exam Weight: 18%</div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p>Tools are how Claude interacts with the world. A Claude agent without well-designed tools is like a brilliant engineer with no hands — it can reason perfectly but cannot act effectively.</p>
+    <p>The exam will present broken tool setups — misrouted calls, ambiguous descriptions, unhelpful error responses — and ask you to diagnose and fix them.</p>
+    <div class="scenarios">
+      <span class="scenario-tag">Scenario 1: Customer Support</span>
+      <span class="scenario-tag">Scenario 3: Multi-Agent Research</span>
+      <span class="scenario-tag">Scenario 4: Developer Productivity</span>
+    </div>
+  </div>
+
+  <!-- 2.1 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">2.1</span>
+      <h2>Design Effective Tool Interfaces</h2>
+    </div>
+    <div class="task-body">
+      <h3>Five Elements of a Great Tool Description</h3>
+      <div class="five-elements">
+        <div class="element-card"><div class="element-num">1</div><div><div class="label">What it does</div><div class="desc">The primary action</div></div></div>
+        <div class="element-card"><div class="element-num">2</div><div><div class="label">When to use it</div><div class="desc">vs. similar tools</div></div></div>
+        <div class="element-card"><div class="element-num">3</div><div><div class="label">What inputs it expects</div><div class="desc">Formats, constraints, examples</div></div></div>
+        <div class="element-card"><div class="element-num">4</div><div><div class="label">What it returns</div><div class="desc">Structure and key fields</div></div></div>
+        <div class="element-card" style="grid-column: span 2"><div class="element-num">5</div><div><div class="label">Edge cases</div><div class="desc">What happens with unusual inputs</div></div></div>
+      </div>
+
+      <h3>Bad vs. Good Tool Description</h3>
+      <div class="callout callout-danger">
+        <div class="callout-label">Bad — Causes Misrouting</div>
+        <p><code>"name": "analyze_content"</code><br><code>"description": "Analyzes content and returns results."</code></p>
+      </div>
+      <div class="callout callout-tip">
+        <div class="callout-label">Good — Precise Routing</div>
+        <p><code>"name": "extract_web_results"</code><br>
+        <code>"description": "Analyzes raw web search result HTML/JSON to extract titles, URLs, dates, and excerpts. Use ONLY for web search output — not for PDF documents or database records. Returns list of {title, url, date, excerpt}. If input is not web search format, returns error."</code></p>
+      </div>
+
+      <h3>Splitting Generic Tools</h3>
+      <pre><code><span class="cm"># BEFORE: One generic tool (Claude guesses)</span>
+analyze_document(document, instruction=<span class="str">"do whatever seems right"</span>)
+
+<span class="cm"># AFTER: Three purpose-specific tools</span>
+extract_data_points(document)        <span class="cm"># structured facts, numbers, entities</span>
+summarize_content(document)          <span class="cm"># narrative summary</span>
+verify_claim_against_source(document, claim)  <span class="cm"># check if claim is supported</span></code></pre>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Overlapping Tool Names — Misrouting Trap</div>
+        <p><code>analyze_content</code> and <code>analyze_document</code> with similar descriptions will cause misrouting. Rename to reflect actual purpose: <code>extract_web_results</code> and <code>analyze_pdf_document</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.2 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">2.2</span>
+      <h2>Structured Error Responses for MCP Tools</h2>
+    </div>
+    <div class="task-body">
+      <h3>The Four Error Categories</h3>
+      <div class="error-grid">
+        <div class="error-card">
+          <div class="cat transient">transient</div>
+          <div class="cause">Timeout, service unavailable, rate limit</div>
+          <div class="response">→ Retry with backoff</div>
+        </div>
+        <div class="error-card">
+          <div class="cat validation">validation</div>
+          <div class="cause">Invalid input format, missing required field</div>
+          <div class="response">→ Fix the input and retry</div>
+        </div>
+        <div class="error-card">
+          <div class="cat permission">permission</div>
+          <div class="cause">Auth failure, insufficient access</div>
+          <div class="response">→ Do not retry; escalate</div>
+        </div>
+        <div class="error-card">
+          <div class="cat business">business</div>
+          <div class="cause">Policy violation, threshold exceeded</div>
+          <div class="response">→ Do not retry; follow business logic</div>
+        </div>
+      </div>
+
+      <h3>The isRetryable Flag — Most Important Error Field</h3>
+      <pre><code><span class="cm"># Transient — retry may succeed</span>
+{
+    <span class="str">"isError"</span>: True,
+    <span class="str">"errorCategory"</span>: <span class="str">"transient"</span>,
+    <span class="str">"isRetryable"</span>: True,
+    <span class="str">"retryAfterSeconds"</span>: <span class="num">5</span>,
+    <span class="str">"message"</span>: <span class="str">"Search service temporarily unavailable."</span>
+}
+
+<span class="cm"># Business rule — retrying will NOT help</span>
+{
+    <span class="str">"isError"</span>: True,
+    <span class="str">"errorCategory"</span>: <span class="str">"business"</span>,
+    <span class="str">"isRetryable"</span>: False,
+    <span class="str">"message"</span>: <span class="str">"Refund $750 exceeds automated limit of $500."</span>,
+    <span class="str">"requiredAction"</span>: <span class="str">"Call escalate_to_human with refund details."</span>
+}</code></pre>
+
+      <h3>Empty Results vs. Access Failures</h3>
+      <div class="callout callout-danger">
+        <div class="callout-label">Critical Distinction</div>
+        <p>Returning <code>{"results": []}</code> for BOTH empty queries AND database failures makes them indistinguishable to the coordinator. Always use a proper error structure for failures.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.3 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">2.3</span>
+      <h2>Distribute Tools Across Agents</h2>
+    </div>
+    <div class="task-body">
+      <div class="callout callout-tip">
+        <div class="callout-label">Principle of Least Tool Access</div>
+        <p>More tools = worse tool selection. Agents with specialized toolsets outperform generalist agents. Give each agent the minimum tools required for its role.</p>
+      </div>
+
+      <pre><code><span class="cm"># WRONG: Give all agents all tools</span>
+coordinator_tools = all_18_tools
+
+<span class="cm"># RIGHT: Scoped toolsets</span>
+coordinator_tools = [<span class="str">"Task"</span>, <span class="str">"summarize"</span>, <span class="str">"evaluate_coverage"</span>]
+search_agent_tools = [<span class="str">"web_search"</span>, <span class="str">"fetch_url"</span>, <span class="str">"filter_results"</span>]
+synthesis_agent_tools = [<span class="str">"verify_fact"</span>, <span class="str">"compile_report"</span>, <span class="str">"format_output"</span>]</code></pre>
+
+      <h3>tool_choice Modes</h3>
+      <table>
+        <tr><th>Mode</th><th>Behavior</th><th>Use When</th></tr>
+        <tr><td><code>auto</code></td><td>Claude decides whether to use a tool</td><td>Conversational context, optional enrichment</td></tr>
+        <tr><td><code>any</code></td><td>Claude MUST call a tool</td><td>Guaranteed structured output needed</td></tr>
+        <tr><td><code>forced</code></td><td>Claude MUST call this specific tool</td><td>Required first step (e.g., extract_metadata before enrichment)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2.4 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">2.4</span>
+      <h2>MCP Server Integration</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Config Location</th><th>Scope</th><th>Use Case</th></tr>
+        <tr><td><code>.mcp.json</code> (project root)</td><td>All team members who clone</td><td>Shared team tooling: GitHub, Jira, internal APIs</td></tr>
+        <tr><td><code>~/.claude.json</code> (user home)</td><td>Only that developer</td><td>Personal tools, experimental servers, dev credentials</td></tr>
+      </table>
+
+      <h3>Configuring .mcp.json</h3>
+      <pre><code>{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"github"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@modelcontextprotocol/server-github"</span>],
+      <span class="str">"env"</span>: { <span class="str">"GITHUB_TOKEN"</span>: <span class="str">"${GITHUB_TOKEN}"</span> }
+    },
+    <span class="str">"jira"</span>: {
+      <span class="str">"command"</span>: <span class="str">"node"</span>,
+      <span class="str">"args"</span>: [<span class="str">"./tools/jira-mcp-server.js"</span>],
+      <span class="str">"env"</span>: { <span class="str">"JIRA_API_TOKEN"</span>: <span class="str">"${JIRA_API_TOKEN}"</span> }
+    }
+  }
+}</code></pre>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Key Rule</div>
+        <p>Team tooling goes in <code>.mcp.json</code> (version controlled). Personal/experimental servers go in <code>~/.claude.json</code> (never committed). Always use <code>${VARIABLE}</code> expansion — never hardcode credentials.</p>
+      </div>
+
+      <h3>MCP Resources</h3>
+      <p>Resources pre-expose content catalogs, reducing exploratory tool calls. Instead of Claude calling <code>list_projects() → list_repos() → list_issues()</code>, an MCP resource exposes the catalog directly so Claude reads the specific item immediately.</p>
+    </div>
+  </div>
+
+  <!-- 2.5 -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">2.5</span>
+      <h2>Built-in Tools: Read, Write, Edit, Bash, Grep, Glob</h2>
+    </div>
+    <div class="task-body">
+      <table>
+        <tr><th>Task</th><th>Correct Tool</th><th>Why</th></tr>
+        <tr><td>Search file contents for a pattern</td><td><strong>Grep</strong></td><td>Content search across files</td></tr>
+        <tr><td>Find files by name/extension</td><td><strong>Glob</strong></td><td>Path pattern matching</td></tr>
+        <tr><td>Read a full file</td><td><strong>Read</strong></td><td>Full file content</td></tr>
+        <tr><td>Make a targeted change</td><td><strong>Edit</strong></td><td>Unique text match → replace</td></tr>
+        <tr><td>Edit fails (non-unique text)</td><td><strong>Read + Write</strong></td><td>Full file rewrite fallback</td></tr>
+        <tr><td>Run a shell command</td><td><strong>Bash</strong></td><td>Execution environment</td></tr>
+      </table>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Grep vs. Glob — Remember This</div>
+        <p><strong>Grep</strong> = searching <em>inside</em> files (content) &nbsp;|&nbsp; <strong>Glob</strong> = searching <em>for</em> files (names/paths)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">∑</span>
+      <h2>Key Concepts Summary</h2>
+    </div>
+    <div class="task-body">
+      <div class="summary-grid">
+        <div class="summary-item"><div class="key">Tool description quality</div><div class="val">5 elements: what, when, inputs, outputs, edge cases</div></div>
+        <div class="summary-item"><div class="key">Overlapping tools</div><div class="val">Rename + clarify descriptions to eliminate ambiguity</div></div>
+        <div class="summary-item"><div class="key">Splitting tools</div><div class="val">Generic → purpose-specific tools with defined contracts</div></div>
+        <div class="summary-item"><div class="key">Error categories</div><div class="val">transient / validation / permission / business</div></div>
+        <div class="summary-item"><div class="key">isRetryable</div><div class="val">Most important error field — determines recovery strategy</div></div>
+        <div class="summary-item"><div class="key">Empty results vs. failure</div><div class="val">Must be distinguishable in error response</div></div>
+        <div class="summary-item"><div class="key">Tool count</div><div class="val">Fewer tools per agent = better selection reliability</div></div>
+        <div class="summary-item"><div class="key">tool_choice</div><div class="val">auto / any / forced — know when to use each</div></div>
+        <div class="summary-item"><div class="key">MCP scope</div><div class="val">.mcp.json = team (committed); ~/.claude.json = personal</div></div>
+        <div class="summary-item"><div class="key">Grep vs. Glob</div><div class="val">Grep = content search; Glob = path/name search</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exam-section">
+    <h2>What the Exam Will Test You On</h2>
+    <div class="exam-q">
+      <div class="q">"Tool calls are being misrouted between two tools with similar names. Fix it."</div>
+      <div class="a">Rename tools and rewrite descriptions to eliminate overlap</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"A subagent returns {results: []} for both empty queries AND access failures. Why is this a problem?"</div>
+      <div class="a">Coordinator cannot distinguish "no data" from "query failed" — cannot make recovery decisions</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"You need guaranteed structured output from Claude. Which tool_choice setting?"</div>
+      <div class="a">"any" (must call a tool) or forced (must call specific tool)</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Where do you configure a shared GitHub MCP server for your team?"</div>
+      <div class="a">.mcp.json in the project root with ${GITHUB_TOKEN} env expansion</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">"Claude keeps using Grep to find test files instead of Glob. What's wrong?"</div>
+      <div class="a">Glob is for path/name matching; Grep is for content. Wrong tool for the task.</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
