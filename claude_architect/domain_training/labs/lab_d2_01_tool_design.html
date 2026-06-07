@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D2-01: Tool Design & MCP Configuration</title>
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+  th{background:var(--surface2);color:var(--accent);font-weight:700;text-align:left;padding:0.6rem 1rem;border-bottom:2px solid var(--border);}
+  td{padding:0.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
+  .compare-bad{background:#ff6b6b0a;border:1px solid #ff6b6b33;border-radius:8px;padding:1rem;}
+  .compare-good{background:#64ffda0a;border:1px solid #64ffda33;border-radius:8px;padding:1rem;}
+  .compare-label{font-size:0.72rem;font-weight:800;text-transform:uppercase;margin-bottom:0.5rem;}
+  .compare-bad .compare-label{color:var(--red);}
+  .compare-good .compare-label{color:var(--green);}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="domain-badge">Lab D2-01</div>
+  <h1>Tool Design &amp; MCP Configuration</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 2 — Tool Use &amp; Integration</span>
+    <span class="meta-pill pill-ts">Task Statements 2.1, 2.2, 2.3</span>
+    <span class="meta-pill pill-time">⏱ 45 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Design Claude-facing tool descriptions that eliminate ambiguity and prevent misuse. You'll write poor descriptions, observe how they cause selection errors, then apply the <strong>5-element framework</strong> to fix them. You'll also wire up a complete tool call and validate schema design against the CCAF exam standard.</p>
+    <p><strong>Key Insight:</strong> Tool descriptions are the interface between Claude's reasoning and your infrastructure. Vague descriptions cause wrong tool calls. Missing negative boundaries cause dangerous calls on edge cases. No exam tests if you know tool names — they test if you can design them correctly.</p>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Diagnose Bad Tool Descriptions (15 min)</h2></div>
+    <div class="task-body">
+      <p>These tool descriptions are broken. Before looking at the fixes, identify <em>which element</em> is missing: <strong>what, when, inputs, outputs, negative boundary</strong>.</p>
+
+      <h3>Tool A — Missing Negative Boundary</h3>
+      <div class="compare">
+        <div class="compare-bad">
+          <div class="compare-label">❌ Broken</div>
+          <pre style="margin:0;font-size:0.82rem;"><code>search_knowledge_base:
+  "Searches the internal
+   knowledge base for
+   relevant articles."</code></pre>
+        </div>
+        <div class="compare-good">
+          <div class="compare-label">✅ Fixed</div>
+          <pre style="margin:0;font-size:0.82rem;"><code>search_knowledge_base:
+  "Searches internal KB for
+   policy/procedure articles.
+   Use for: policy questions,
+   procedure lookups. Do NOT
+   use for: customer account
+   data, order history, or
+   real-time inventory."</code></pre>
+        </div>
+      </div>
+      <p>Without the negative boundary, Claude may call <code>search_knowledge_base</code> when asked about a customer's order history — wasting a call and returning confusing empty results.</p>
+
+      <h3>Tool B — Missing 'When' Condition</h3>
+      <div class="compare">
+        <div class="compare-bad">
+          <div class="compare-label">❌ Broken</div>
+          <pre style="margin:0;font-size:0.82rem;"><code>escalate_to_human:
+  "Escalates the case to a
+   human support agent."</code></pre>
+        </div>
+        <div class="compare-good">
+          <div class="compare-label">✅ Fixed</div>
+          <pre style="margin:0;font-size:0.82rem;"><code>escalate_to_human:
+  "Transfers conversation to
+   a human agent. Use ONLY
+   when: (1) customer
+   explicitly requests human,
+   (2) refund > $500 requires
+   manager approval, (3) 3+
+   failed resolution attempts.
+   Do NOT use preemptively."</code></pre>
+        </div>
+      </div>
+
+      <h3>Exercise: Write the Full 5-Element Description</h3>
+      <p>Write a complete description for <code>process_refund</code> that includes all 5 elements. The tool: takes order_id (string), amount (float), reason (string); calls the payments API; returns refund_id and status.</p>
+      <pre><code><span class="cm"># Your answer structure:</span>
+process_refund:
+  description: <span class="str">"""
+  WHAT: ...
+  WHEN: ...
+  INPUTS: order_id (str, required), amount (float, required), reason (str, required)
+  OUTPUTS: ...
+  DO NOT: ...
+  """</span></code></pre>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>Schema Design — Input Validation Shapes (15 min)</h2></div>
+    <div class="task-body">
+      <p>Claude's tool call inputs are validated against the schema you provide. Poorly designed schemas cause: (a) Claude sending wrong types, (b) Claude omitting required fields, (c) ambiguous optional fields with no defaults.</p>
+
+      <h3>Reference Schema — process_refund</h3>
+      <pre><code>tools = [
+  {
+    <span class="str">"name"</span>: <span class="str">"process_refund"</span>,
+    <span class="str">"description"</span>: <span class="str">"Initiates a refund for a delivered order. Use when a customer requests a refund for a verified order. Requires prior successful lookup_order call. Do NOT use for exchanges or replacements — use create_exchange_request for those."</span>,
+    <span class="str">"input_schema"</span>: {
+      <span class="str">"type"</span>: <span class="str">"object"</span>,
+      <span class="str">"properties"</span>: {
+        <span class="str">"order_id"</span>: {
+          <span class="str">"type"</span>: <span class="str">"string"</span>,
+          <span class="str">"description"</span>: <span class="str">"Order ID from the verified lookup_order result. Format: ORD-XXXX."</span>
+        },
+        <span class="str">"amount"</span>: {
+          <span class="str">"type"</span>: <span class="str">"number"</span>,
+          <span class="str">"description"</span>: <span class="str">"Refund amount in USD. Must be &lt;= order amount. Must be &lt;= 500 for automated processing."</span>,
+          <span class="str">"minimum"</span>: <span class="num">0.01</span>,
+          <span class="str">"maximum"</span>: <span class="num">500</span>
+        },
+        <span class="str">"reason"</span>: {
+          <span class="str">"type"</span>: <span class="str">"string"</span>,
+          <span class="str">"description"</span>: <span class="str">"Customer-stated reason for refund."</span>,
+          <span class="str">"enum"</span>: [<span class="str">"damaged"</span>, <span class="str">"wrong_item"</span>, <span class="str">"not_received"</span>, <span class="str">"other"</span>]
+        }
+      },
+      <span class="str">"required"</span>: [<span class="str">"order_id"</span>, <span class="str">"amount"</span>, <span class="str">"reason"</span>]
+    }
+  }
+]</code></pre>
+
+      <h3>Identify the Anti-Patterns</h3>
+      <table>
+        <tr><th>Anti-Pattern</th><th>What Goes Wrong</th><th>Fix</th></tr>
+        <tr><td>No <code>minimum</code>/<code>maximum</code></td><td>Claude may send amount: -50 or amount: 9999</td><td>Add numeric bounds</td></tr>
+        <tr><td>No <code>enum</code> for reason</td><td>Claude invents freeform values like "product was bad"</td><td>Enumerate valid reasons</td></tr>
+        <tr><td>Required without description</td><td>Claude infers the field's meaning from the name alone</td><td>Always add per-field description</td></tr>
+        <tr><td>Optional field with no default</td><td>Claude may omit it, causing API 400 errors</td><td>Make it required OR set a default</td></tr>
+      </table>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Exam Insight</div>
+        <p>The exam tests whether you know: <strong>maximum: 500 in the schema</strong> does not replace the PreToolUse hook. Schema validation catches malformed inputs. The hook enforces business rules. Both layers are needed — they do different jobs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>Tool Selection Simulation (15 min)</h2></div>
+    <div class="task-body">
+      <pre><code><span class="cm"># Run this to see how description quality affects tool selection</span>
+<span class="kw">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+VAGUE_TOOLS = [
+    {<span class="str">"name"</span>: <span class="str">"search"</span>, <span class="str">"description"</span>: <span class="str">"Searches for information."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}}, <span class="str">"required"</span>: [<span class="str">"query"</span>]}},
+    {<span class="str">"name"</span>: <span class="str">"lookup"</span>, <span class="str">"description"</span>: <span class="str">"Looks up records."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"id"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}}, <span class="str">"required"</span>: [<span class="str">"id"</span>]}},
+]
+
+CLEAR_TOOLS = [
+    {<span class="str">"name"</span>: <span class="str">"search_knowledge_base"</span>,
+     <span class="str">"description"</span>: <span class="str">"Searches internal policy and procedure articles. Use for policy questions. Do NOT use for customer account data or order history."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"description"</span>: <span class="str">"Policy search terms"</span>}}, <span class="str">"required"</span>: [<span class="str">"query"</span>]}},
+    {<span class="str">"name"</span>: <span class="str">"lookup_order"</span>,
+     <span class="str">"description"</span>: <span class="str">"Retrieves order details for a verified customer. Use for order-specific questions. Requires prior get_customer call. Do NOT use for policy lookups."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"order_id"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"description"</span>: <span class="str">"Order ID in format ORD-XXXX"</span>}}, <span class="str">"required"</span>: [<span class="str">"order_id"</span>]}},
+]
+
+<span class="kw">def</span> <span class="fn">test_selection</span>(tools, label, prompt):
+    response = client.messages.create(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">512</span>,
+        tools=tools,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: prompt}]
+    )
+    <span class="kw">for</span> block <span class="kw">in</span> response.content:
+        <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+            print(f<span class="str">"[{label}] Selected: {block.name} | Input: {block.input}"</span>)
+
+test_selection(VAGUE_TOOLS, <span class="str">"VAGUE"</span>, <span class="str">"What is the return policy for damaged items?"</span>)
+test_selection(CLEAR_TOOLS, <span class="str">"CLEAR"</span>, <span class="str">"What is the return policy for damaged items?"</span>)
+test_selection(VAGUE_TOOLS, <span class="str">"VAGUE"</span>, <span class="str">"Get details for order ORD-5001"</span>)
+test_selection(CLEAR_TOOLS, <span class="str">"CLEAR"</span>, <span class="str">"Get details for order ORD-5001"</span>)</code></pre>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Q</span><h2>Reflection Questions</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. In the vague-tools test, did Claude select the wrong tool for "return policy" or "order ORD-5001"? Why was it ambiguous?</div>
+        <div class="r-hint">Both search and lookup are plausible with vague descriptions. Specificity eliminates guesswork.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. The schema includes maximum: 500 for the refund amount. Does this replace the PreToolUse hook? Why or why not?</div>
+        <div class="r-hint">Schema validation and business-rule enforcement serve different purposes.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. What does a negative boundary ("Do NOT use for X") communicate to Claude that a positive description alone cannot?</div>
+        <div class="r-hint">Think about edge cases where Claude's reasoning is ambiguous between two tools.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. You have a get_customer tool and a search_customer tool. How do you distinguish when Claude should call each one?</div>
+        <div class="r-hint">One looks up by ID (known identity). The other searches by name (unknown or partial identity).</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. If a tool returns empty results (not an error), what should the structured response look like? How is it different from an error?</div>
+        <div class="r-hint">isError: false, results: [] is not an error. The same generic error for different failure types prevents recovery.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>Diagnosed which element was missing in Tool A and Tool B</li>
+        <li>Wrote the 5-element description for process_refund</li>
+        <li>Ran the selection simulation — observed clear vs. vague tool choice differences</li>
+        <li>All reflection questions answered</li>
+      </ul>
+      <p style="margin-top:1rem;"><em>Next Lab: D2-02 — Structured Error Responses</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

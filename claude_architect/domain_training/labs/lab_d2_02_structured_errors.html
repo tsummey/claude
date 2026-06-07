@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D2-02: Structured Error Responses</title>
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+  th{background:var(--surface2);color:var(--accent);font-weight:700;text-align:left;padding:0.6rem 1rem;border-bottom:2px solid var(--border);}
+  td{padding:0.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-danger{background:#ff6b6b11;border-color:var(--red);}
+  .callout-danger p{color:#ff6b6b99;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-danger .callout-label{color:var(--red);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="domain-badge">Lab D2-02</div>
+  <h1>Structured Error Responses</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 2 — Tool Use &amp; Integration</span>
+    <span class="meta-pill pill-ts">Task Statements 2.3, 2.4</span>
+    <span class="meta-pill pill-time">⏱ 40 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Build the MCP-compatible error response schema and observe how structured errors enable Claude to self-correct, while unstructured errors cause retry loops and dead ends. Every CCAF scenario exercises error handling — this lab locks in the pattern.</p>
+    <p><strong>Core pattern:</strong> Every tool result must include <code>isError</code> (bool), <code>errorCategory</code> (transient/validation/business_rule/permission), and <code>isRetryable</code> (bool). Empty results are <em>not</em> errors.</p>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Error Category Reference &amp; isRetryable Logic (15 min)</h2></div>
+    <div class="task-body">
+      <table>
+        <tr><th>errorCategory</th><th>Example</th><th>isRetryable</th><th>Claude's Next Action</th></tr>
+        <tr><td>transient</td><td>Payment gateway timeout</td><td>True</td><td>Wait and retry automatically</td></tr>
+        <tr><td>validation</td><td>Order ID format invalid</td><td>False</td><td>Ask customer to re-confirm order number</td></tr>
+        <tr><td>business_rule</td><td>Refund exceeds $500 limit</td><td>False</td><td>Escalate to human for approval</td></tr>
+        <tr><td>permission</td><td>Agent not authorized for this action</td><td>False</td><td>Explain limitation, offer alternatives</td></tr>
+        <tr><td>not_found</td><td>Order ID doesn't exist</td><td>False</td><td>Ask customer to verify the ID</td></tr>
+      </table>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Critical: Empty Result ≠ Error</div>
+        <p><code>{"isError": false, "results": []}</code> means "search succeeded, nothing matched." This is a success. Claude should tell the customer no results were found. If you return <code>isError: true</code> for empty results, Claude will attempt to retry a query that's working correctly.</p>
+      </div>
+
+      <pre><code><span class="kw">def</span> <span class="fn">make_error</span>(category: str, message: str, retryable: bool, action: str = <span class="kw">None</span>) -> dict:
+    result = {
+        <span class="str">"isError"</span>: <span class="kw">True</span>,
+        <span class="str">"errorCategory"</span>: category,
+        <span class="str">"isRetryable"</span>: retryable,
+        <span class="str">"error"</span>: message,
+    }
+    <span class="kw">if</span> action:
+        result[<span class="str">"required_action"</span>] = action
+    <span class="kw">return</span> result
+
+<span class="cm"># Usage examples</span>
+timeout_error = make_error(
+    <span class="str">"transient"</span>,
+    <span class="str">"Payment API timeout after 5s."</span>,
+    retryable=<span class="kw">True</span>
+)
+
+threshold_error = make_error(
+    <span class="str">"business_rule"</span>,
+    <span class="str">"Refund $749 exceeds $500 automated limit."</span>,
+    retryable=<span class="kw">False</span>,
+    action=<span class="str">"Call escalate_to_human for manager approval."</span>
+)
+
+not_found = make_error(
+    <span class="str">"not_found"</span>,
+    <span class="str">"Order ORD-9999 not found in system."</span>,
+    retryable=<span class="kw">False</span>,
+    action=<span class="str">"Ask customer to verify order ID."</span>
+)
+
+<span class="cm"># Empty result — this is NOT an error</span>
+empty_search = {<span class="str">"isError"</span>: <span class="kw">False</span>, <span class="str">"results"</span>: [], <span class="str">"message"</span>: <span class="str">"No articles matched your search."</span>}</code></pre>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>Generic vs Specific Error — Self-Correction Test (15 min)</h2></div>
+    <div class="task-body">
+      <p>Run two versions of the same error scenario and observe whether Claude self-corrects. Generic errors give Claude no information about what action to take next. Structured errors give Claude the exact next step.</p>
+      <pre><code><span class="kw">import</span> anthropic, json
+
+client = anthropic.Anthropic()
+
+<span class="cm"># Simulate the tool returning two different error formats</span>
+GENERIC_ERROR = {<span class="str">"error"</span>: <span class="str">"Refund failed."</span>}
+STRUCTURED_ERROR = {
+    <span class="str">"isError"</span>: <span class="kw">True</span>,
+    <span class="str">"errorCategory"</span>: <span class="str">"business_rule"</span>,
+    <span class="str">"isRetryable"</span>: <span class="kw">False</span>,
+    <span class="str">"error"</span>: <span class="str">"Refund $749 exceeds the $500 automated limit."</span>,
+    <span class="str">"required_action"</span>: <span class="str">"Call escalate_to_human for manager approval."</span>
+}
+
+<span class="kw">def</span> <span class="fn">simulate_error_handling</span>(error_response: dict, label: str):
+    <span class="cm"># Step 1: initial refund attempt</span>
+    first_call = [
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Process a $749 refund for order ORD-5002. Customer C001 is verified."</span>},
+        {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: [{
+            <span class="str">"type"</span>: <span class="str">"tool_use"</span>, <span class="str">"id"</span>: <span class="str">"tool_1"</span>,
+            <span class="str">"name"</span>: <span class="str">"process_refund"</span>,
+            <span class="str">"input"</span>: {<span class="str">"order_id"</span>: <span class="str">"ORD-5002"</span>, <span class="str">"amount"</span>: <span class="num">749</span>, <span class="str">"reason"</span>: <span class="str">"wrong_item"</span>}
+        }]},
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: [{
+            <span class="str">"type"</span>: <span class="str">"tool_result"</span>, <span class="str">"tool_use_id"</span>: <span class="str">"tool_1"</span>,
+            <span class="str">"content"</span>: json.dumps(error_response),
+            <span class="str">"is_error"</span>: error_response.get(<span class="str">"isError"</span>, <span class="str">"error"</span> <span class="kw">in</span> error_response)
+        }]}
+    ]
+    response = client.messages.create(
+        model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">512</span>,
+        tools=[escalate_tool],  <span class="cm"># Only escalate_to_human available</span>
+        messages=first_call
+    )
+    print(f<span class="str">"\n=== [{label}] Claude's response after error ==="</span>)
+    <span class="kw">for</span> block <span class="kw">in</span> response.content:
+        <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>): print(<span class="str">"Text:"</span>, block.text[:200])
+        <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>: print(<span class="str">"Tool called:"</span>, block.name)
+
+simulate_error_handling(GENERIC_ERROR, <span class="str">"GENERIC"</span>)
+simulate_error_handling(STRUCTURED_ERROR, <span class="str">"STRUCTURED"</span>)</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Expected Outcome</div>
+        <p>With the generic error, Claude may retry the refund or output a vague apology. With the structured error + <code>required_action</code>, Claude should call <code>escalate_to_human</code>. That's self-correction driven by error design.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>The isRetryable Decision — get_customer Timeout (10 min)</h2></div>
+    <div class="task-body">
+      <p>This was one of the deferred knowledge check questions. Settle it with code and reasoning.</p>
+
+      <h3>Scenario: get_customer times out</h3>
+      <p>The customer database is experiencing high load. The tool call fails with a 5-second timeout. Should <code>isRetryable</code> be <code>True</code> or <code>False</code>?</p>
+      <pre><code><span class="cm"># Correct: transient timeout IS retryable</span>
+timeout_response = {
+    <span class="str">"isError"</span>: <span class="kw">True</span>,
+    <span class="str">"errorCategory"</span>: <span class="str">"transient"</span>,
+    <span class="str">"isRetryable"</span>: <span class="kw">True</span>,
+    <span class="str">"error"</span>: <span class="str">"Customer database timed out after 5s."</span>,
+    <span class="str">"retryAfterMs"</span>: <span class="num">2000</span>  <span class="cm"># Optional: hint to wait 2s before retry</span>
+}
+
+<span class="cm"># Why isRetryable matters:</span>
+<span class="cm"># If isRetryable=True: orchestrator can auto-retry without bothering the customer</span>
+<span class="cm"># If isRetryable=False: orchestrator escalates or asks customer to try again</span>
+<span class="cm"># Using False for a timeout = unnecessary customer friction</span>
+<span class="cm"># Using True for a business_rule violation = infinite retry loop</span>
+
+<span class="cm"># WRONG: validation error marked as retryable</span>
+<span class="cm"># bad_response = {</span>
+<span class="cm">#     "isError": True,</span>
+<span class="cm">#     "errorCategory": "validation",  # <-- permanent failure</span>
+<span class="cm">#     "isRetryable": True,            # <-- CONTRADICTION — will loop forever</span>
+<span class="cm">#     "error": "Invalid order ID format: order123"</span>
+<span class="cm"># }</span></code></pre>
+
+      <table>
+        <tr><th>Scenario</th><th>isRetryable</th><th>Reason</th></tr>
+        <tr><td>Database timeout</td><td>True</td><td>Infrastructure issue — will resolve</td></tr>
+        <tr><td>Invalid order ID format</td><td>False</td><td>Permanent — retrying with same input won't help</td></tr>
+        <tr><td>$750 refund over threshold</td><td>False</td><td>Business rule violation — amount won't change</td></tr>
+        <tr><td>Payment API rate limited</td><td>True</td><td>Temporary — retry after delay</td></tr>
+        <tr><td>Insufficient permissions</td><td>False</td><td>Won't resolve without authorization change</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Q</span><h2>Reflection Questions</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. In the simulation, did Claude call escalate_to_human after the structured error? After the generic error?</div>
+        <div class="r-hint">The required_action field gives Claude specific next-step guidance. Measure whether it worked.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. Why is returning isError: true for an empty search result harmful?</div>
+        <div class="r-hint">What does the orchestrator do when it sees isError: true?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. A payment API returns the same generic "Service unavailable" for both rate limiting (temporary) and account suspension (permanent). Why does this break self-correction?</div>
+        <div class="r-hint">Claude needs to know whether to retry or escalate. Same error message → can't distinguish.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. You have a lookup_order call that returns not_found for an order that's 10 minutes old (just placed). What errorCategory and isRetryable values are correct?</div>
+        <div class="r-hint">Is this a permanent validation error or a transient propagation delay?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. What happens if an orchestrator receives isRetryable: true but never implements a retry limit? What failure mode results?</div>
+        <div class="r-hint">Think about infinite loops and the agentic loop termination condition.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>Error category table understood — can map any scenario to the correct category</li>
+        <li>Simulation ran — observed self-correction with structured vs. generic error</li>
+        <li>isRetryable decision table completed with correct reasoning</li>
+        <li>Empty result vs error distinction is clear</li>
+      </ul>
+      <p style="margin-top:1rem;"><em>Next Lab: D3-01 — Claude Code Configuration</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

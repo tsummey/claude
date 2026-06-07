@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D1-02: Multi-Agent Research System</title>
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .overview-card p:last-child{margin-bottom:0;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-danger{background:#ff6b6b11;border-color:var(--red);}
+  .callout-danger p{color:#ff6b6b99;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-danger .callout-label{color:var(--red);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+  .arch-block{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;font-family:monospace;font-size:0.82rem;color:#89b4fa;margin:1rem 0;white-space:pre;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="domain-badge">Lab D1-02</div>
+  <h1>Multi-Agent Research System</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 1 — Agentic Architecture</span>
+    <span class="meta-pill pill-ts">Task Statements 1.2, 1.3</span>
+    <span class="meta-pill pill-time">⏱ 60 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Build the multi-agent research system from Scenario 3. Experience firsthand why subagent context isolation is the #1 source of bugs in multi-agent systems. Build the broken version first — then the correct one.</p>
+    <p><strong>Create:</strong> <code>C:\Users\tsummey\projects\claude\claude_architect\labs\lab_d1_02_work.py</code></p>
+  </div>
+
+  <!-- Architecture -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Arch</span><h2>System Architecture</h2></div>
+    <div class="task-body">
+      <div class="arch-block">User Query: "Impact of remote work on urban real estate markets"
+     │
+     ▼
+┌─────────────────────┐
+│    COORDINATOR      │  ← Decomposes, delegates, aggregates
+└──────────┬──────────┘
+           │  (parallel Task calls)
+    ┌──────┴──────┐
+    │             │
+    ▼             ▼
+┌────────┐   ┌──────────┐
+│SEARCH  │   │ DOCUMENT │   ← Specialized, isolated context
+│AGENT   │   │ ANALYSIS │
+└────────┘   └──────────┘
+    │             │
+    └──────┬──────┘
+           ▼
+    ┌─────────────┐
+    │  SYNTHESIS  │   ← Receives EXPLICIT context from coordinator
+    └─────────────┘</div>
+      <div class="callout callout-danger">
+        <div class="callout-label">Critical Rule — Context Isolation</div>
+        <p>Subagents have <strong>zero access</strong> to the coordinator's conversation history. They do not inherit findings automatically. Every piece of context must be passed <strong>explicitly</strong> in the subagent's prompt. This is the single most common multi-agent bug.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Foundation — Mock Data &amp; Subagent Tools (20 min)</h2></div>
+    <div class="task-body">
+      <pre><code><span class="kw">import</span> anthropic, json
+client = anthropic.Anthropic()
+
+MOCK_SEARCH_RESULTS = {
+    <span class="str">"remote work urban real estate"</span>: [
+        {<span class="str">"title"</span>: <span class="str">"Remote Work Exodus"</span>, <span class="str">"url"</span>: <span class="str">"https://realestate-journal.com/remote-work-exodus"</span>,
+         <span class="str">"date"</span>: <span class="str">"2024-02-15"</span>, <span class="str">"excerpt"</span>: <span class="str">"Office vacancy rates hit 22% in Q4 2023."</span>},
+        {<span class="str">"title"</span>: <span class="str">"Suburban Migration Accelerates"</span>, <span class="str">"url"</span>: <span class="str">"https://urban-studies.org/suburban-migration"</span>,
+         <span class="str">"date"</span>: <span class="str">"2024-01-28"</span>, <span class="str">"excerpt"</span>: <span class="str">"Suburban home prices up 18% since 2020."</span>}
+    ],
+}
+MOCK_DOCUMENTS = {
+    <span class="str">"suburban_housing_study.pdf"</span>: {
+        <span class="str">"content"</span>: <span class="str">"Federal Reserve study: Remote work adds $10,000-$25,000 premium to suburban home values."</span>,
+        <span class="str">"date"</span>: <span class="str">"2023-11-15"</span>, <span class="str">"source"</span>: <span class="str">"Federal Reserve Bank of Atlanta"</span>
+    },
+}
+
+<span class="kw">def</span> <span class="fn">web_search_agent</span>(query: str, num_results: int = <span class="num">5</span>) -> dict:
+    results = []
+    <span class="kw">for</span> key, value <span class="kw">in</span> MOCK_SEARCH_RESULTS.items():
+        <span class="kw">if</span> any(word <span class="kw">in</span> query.lower() <span class="kw">for</span> word <span class="kw">in</span> key.split()):
+            results.extend(value)
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"query"</span>: query, <span class="str">"results"</span>: results[:num_results]}
+
+<span class="kw">def</span> <span class="fn">document_analysis_agent</span>(document_name: str, analysis_focus: str) -> dict:
+    doc = MOCK_DOCUMENTS.get(document_name)
+    <span class="kw">if not</span> doc:
+        <span class="kw">return</span> {<span class="str">"isError"</span>: <span class="kw">True</span>, <span class="str">"error"</span>: f<span class="str">"Document '{document_name}' not found"</span>}
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"source"</span>: doc[<span class="str">"source"</span>], <span class="str">"date"</span>: doc[<span class="str">"date"</span>],
+            <span class="str">"key_findings"</span>: doc[<span class="str">"content"</span>]}
+
+COORDINATOR_TOOLS = [
+    {<span class="str">"name"</span>: <span class="str">"web_search_agent"</span>, <span class="str">"description"</span>: <span class="str">"Search the web for articles and statistics."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}, <span class="str">"num_results"</span>: {<span class="str">"type"</span>: <span class="str">"integer"</span>}}, <span class="str">"required"</span>: [<span class="str">"query"</span>]}},
+    {<span class="str">"name"</span>: <span class="str">"document_analysis_agent"</span>, <span class="str">"description"</span>: <span class="str">"Analyze a specific research document in depth."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"document_name"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}, <span class="str">"analysis_focus"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}}, <span class="str">"required"</span>: [<span class="str">"document_name"</span>, <span class="str">"analysis_focus"</span>]}}
+]
+
+<span class="kw">def</span> <span class="fn">execute_subagent</span>(agent_name, agent_input) -> str:
+    <span class="kw">if</span> agent_name == <span class="str">"web_search_agent"</span>:
+        result = web_search_agent(agent_input.get(<span class="str">"query"</span>, <span class="str">""</span>), agent_input.get(<span class="str">"num_results"</span>, <span class="num">5</span>))
+    <span class="kw">elif</span> agent_name == <span class="str">"document_analysis_agent"</span>:
+        result = document_analysis_agent(agent_input.get(<span class="str">"document_name"</span>, <span class="str">""</span>), agent_input.get(<span class="str">"analysis_focus"</span>, <span class="str">""</span>))
+    <span class="kw">else</span>: result = {<span class="str">"error"</span>: <span class="str">"unknown agent"</span>}
+    <span class="kw">return</span> json.dumps(result, indent=<span class="num">2</span>)</code></pre>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>The Broken Coordinator — Context Isolation Bug (15 min)</h2></div>
+    <div class="task-body">
+      <p>Build this version first. It has the most common multi-agent bug: gathering findings but never passing them to Claude for synthesis.</p>
+      <pre><code><span class="kw">def</span> <span class="fn">run_coordinator_broken</span>(research_query: str) -> str:
+    <span class="cm"># Phase 1: Gather research</span>
+    all_findings = []
+    result1 = web_search_agent(<span class="str">"remote work urban real estate markets"</span>)
+    all_findings.append(result1)
+    result2 = document_analysis_agent(<span class="str">"suburban_housing_study.pdf"</span>, <span class="str">"housing values"</span>)
+    all_findings.append(result2)
+    print(f<span class="str">"Gathered {len(all_findings)} sources"</span>)
+
+    <span class="cm"># Phase 2: Ask Claude to synthesize — BUT WITHOUT PASSING THE FINDINGS</span>
+    synthesis_prompt = <span class="str">"""Based on your research, synthesize key findings about
+    the impact of remote work on urban real estate markets."""</span>
+    <span class="cm"># BUG: all_findings is NEVER given to Claude</span>
+
+    response = client.messages.create(
+        model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">2048</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: synthesis_prompt}]
+    )
+    <span class="kw">return</span> response.content[<span class="num">0</span>].text</code></pre>
+      <div class="callout callout-warn">
+        <div class="callout-label">Run This First — Observe the Failure</div>
+        <p>Run <code>run_coordinator_broken()</code> and record the output. Does Claude hallucinate statistics? Does it acknowledge having no data? This is the context isolation failure in action.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>The Correct Coordinator — Explicit Context Passing (25 min)</h2></div>
+    <div class="task-body">
+      <pre><code>COORDINATOR_SYSTEM = <span class="str">"""You are a research coordinator managing a multi-agent pipeline.
+
+Responsibilities:
+1. Decompose the research query into comprehensive subtopics
+2. Delegate to specialized agents — do not miss major areas
+3. Review ALL findings before requesting synthesis
+4. Every factual claim must cite a specific source with date
+5. Conflicting data from sources must be noted, not resolved arbitrarily"""</span>
+
+<span class="kw">def</span> <span class="fn">run_coordinator_correct</span>(research_query: str) -> str:
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: f<span class="str">"Research comprehensively: {research_query}"</span>}]
+    iteration = <span class="num">0</span>
+
+    <span class="kw">while</span> iteration < <span class="num">15</span>:
+        iteration += <span class="num">1</span>
+        response = client.messages.create(
+            model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">4096</span>,
+            system=COORDINATOR_SYSTEM, tools=COORDINATOR_TOOLS, messages=messages
+        )
+        print(f<span class="str">"[Iter {iteration}] stop_reason: {response.stop_reason}"</span>)
+
+        <span class="kw">if</span> response.stop_reason == <span class="str">"end_turn"</span>:
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>): <span class="kw">return</span> block.text
+            <span class="kw">return</span> <span class="str">""</span>
+
+        <span class="kw">elif</span> response.stop_reason == <span class="str">"tool_use"</span>:
+            messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+            tool_results = []
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    print(f<span class="str">"  → {block.name}: {json.dumps(block.input)[:80]}"</span>)
+                    result = execute_subagent(block.name, block.input)
+                    tool_results.append({<span class="str">"type"</span>: <span class="str">"tool_result"</span>, <span class="str">"tool_use_id"</span>: block.id, <span class="str">"content"</span>: result})
+            messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: tool_results})</code></pre>
+
+      <h3>Part 4 — Parallel Spawning (Bonus)</h3>
+      <p>Add this to the coordinator's system prompt to encourage parallel tool calls:</p>
+      <pre><code>COORDINATOR_SYSTEM_PARALLEL = COORDINATOR_SYSTEM + <span class="str">"""
+
+EFFICIENCY: When you have multiple independent searches, call web_search_agent
+multiple times IN THE SAME RESPONSE. Do not wait sequentially for independent tasks."""</span>
+
+<span class="cm"># Observe: Does the coordinator emit multiple tool calls in a single response?
+# They'll appear grouped in the same iteration in your output.</span></code></pre>
+
+      <h3>Run and Compare</h3>
+      <pre><code><span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    query = <span class="str">"What is the impact of remote work on urban real estate markets?"</span>
+    print(<span class="str">"=== BROKEN ==="</span>)
+    print(run_coordinator_broken(query)[:500])
+    print(<span class="str">"=== CORRECT ==="</span>)
+    print(run_coordinator_correct(query)[:1000])</code></pre>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Q</span><h2>Reflection Questions</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. When the broken coordinator asked Claude to synthesize findings it never saw — did Claude hallucinate statistics or acknowledge it had no data?</div>
+        <div class="r-hint">This tells you whether Claude gracefully handles missing context or confidently fabricates.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. In the correct coordinator, how many iterations did it take? Trace the message history — what was in each message?</div>
+        <div class="r-hint">Draw it out: message[0]=user query, message[1]=assistant+tool_calls, message[2]=tool_results, etc.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. In the parallel version, did the coordinator emit multiple tool calls in one response? What did the messages array look like at that iteration?</div>
+        <div class="r-hint">One assistant message can contain multiple tool_use blocks. Did you see that?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. If the coordinator decomposed "AI in creative industries" into: digital art, graphic design, photography — what exam concept does this illustrate?</div>
+        <div class="r-hint">Think about what music, writing, and film would think about this decomposition.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. What would you change about the tool result structure to make the synthesis agent cite which search query produced each result?</div>
+        <div class="r-hint">The tool result currently contains result data. What metadata would you add?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>Broken coordinator runs and you've observed the context isolation failure</li>
+        <li>Correct coordinator produces a sourced, multi-section research summary</li>
+        <li>You understand why explicit context passing is non-negotiable</li>
+        <li>All reflection questions answered</li>
+        <li>(Bonus) Parallel spawning observed — multiple tool calls in one iteration</li>
+      </ul>
+      <p style="margin-top:1rem;"><em>Next Lab: D1-03 — Programmatic Enforcement &amp; Agent SDK Hooks</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

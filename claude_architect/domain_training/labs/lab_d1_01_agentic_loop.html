@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D1-01: Build a Correct Agentic Loop</title>
+<style>
+  :root { --bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;--orange:#f4a261; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .overview-card p:last-child{margin-bottom:0;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+  th{background:var(--surface2);color:var(--accent);font-weight:700;text-align:left;padding:0.6rem 1rem;border-bottom:2px solid var(--border);}
+  td{padding:0.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-danger{background:#ff6b6b11;border-color:var(--red);}
+  .callout-danger p{color:#ff6b6b99;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-danger .callout-label{color:var(--red);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .lab-steps{counter-reset:step;list-style:none;padding-left:0;}
+  .lab-steps li{counter-increment:step;padding:0.6rem 0 0.6rem 2.8rem;position:relative;color:var(--muted);border-bottom:1px solid var(--border);}
+  .lab-steps li:last-child{border-bottom:none;}
+  .lab-steps li::before{content:counter(step);position:absolute;left:0;top:0.6rem;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:1.8rem;height:1.8rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Lab D1-01</div>
+  <h1>Build a Correct Agentic Loop</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 1 — Agentic Architecture</span>
+    <span class="meta-pill pill-ts">Task Statement 1.1</span>
+    <span class="meta-pill pill-time">⏱ 45 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Build a working agentic loop from scratch that correctly handles <code>stop_reason</code>, appends tool results to conversation history, and avoids all known anti-patterns. Then deliberately break it three ways to understand exactly how each failure mode behaves.</p>
+    <p><strong>Prerequisites:</strong> Python 3.10+, <code>pip install anthropic</code>, <code>ANTHROPIC_API_KEY</code> set.</p>
+    <p><strong>Create your lab file at:</strong> <code>C:\Users\tsummey\projects\claude\claude_architect\labs\lab_d1_01_work.py</code></p>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Build the Correct Loop (20 min)</h2></div>
+    <div class="task-body">
+      <p>Build an agent that answers questions about a fictional employee database. The agent has two tools:</p>
+      <table>
+        <tr><th>Tool</th><th>Input</th><th>Returns</th></tr>
+        <tr><td><code>get_employee</code></td><td><code>employee_id</code></td><td>name, department, salary, hire_date</td></tr>
+        <tr><td><code>get_department_stats</code></td><td><code>department</code></td><td>headcount, average_salary, open_positions</td></tr>
+      </table>
+
+      <h3>Step 1 — Mock Data &amp; Tools</h3>
+      <pre><code><span class="kw">import</span> anthropic
+<span class="kw">import</span> json
+
+client = anthropic.Anthropic()
+
+EMPLOYEES = {
+    <span class="str">"E001"</span>: {<span class="str">"name"</span>: <span class="str">"Sarah Chen"</span>, <span class="str">"department"</span>: <span class="str">"Engineering"</span>, <span class="str">"salary"</span>: <span class="num">145000</span>, <span class="str">"hire_date"</span>: <span class="str">"2021-03-15"</span>},
+    <span class="str">"E002"</span>: {<span class="str">"name"</span>: <span class="str">"Marcus Webb"</span>, <span class="str">"department"</span>: <span class="str">"Sales"</span>, <span class="str">"salary"</span>: <span class="num">98000</span>, <span class="str">"hire_date"</span>: <span class="str">"2020-07-22"</span>},
+    <span class="str">"E003"</span>: {<span class="str">"name"</span>: <span class="str">"Priya Nair"</span>, <span class="str">"department"</span>: <span class="str">"Engineering"</span>, <span class="str">"salary"</span>: <span class="num">152000</span>, <span class="str">"hire_date"</span>: <span class="str">"2019-11-01"</span>},
+}
+DEPARTMENTS = {
+    <span class="str">"Engineering"</span>: {<span class="str">"headcount"</span>: <span class="num">24</span>, <span class="str">"average_salary"</span>: <span class="num">148000</span>, <span class="str">"open_positions"</span>: <span class="num">3</span>},
+    <span class="str">"Sales"</span>: {<span class="str">"headcount"</span>: <span class="num">18</span>, <span class="str">"average_salary"</span>: <span class="num">95000</span>, <span class="str">"open_positions"</span>: <span class="num">5</span>},
+}
+
+<span class="kw">def</span> <span class="fn">execute_tool</span>(tool_name, tool_input):
+    <span class="kw">if</span> tool_name == <span class="str">"get_employee"</span>:
+        emp = EMPLOYEES.get(tool_input[<span class="str">"employee_id"</span>])
+        <span class="kw">return</span> json.dumps(emp <span class="kw">if</span> emp <span class="kw">else</span> {<span class="str">"error"</span>: <span class="str">"not found"</span>})
+    <span class="kw">elif</span> tool_name == <span class="str">"get_department_stats"</span>:
+        stats = DEPARTMENTS.get(tool_input[<span class="str">"department"</span>])
+        <span class="kw">return</span> json.dumps(stats <span class="kw">if</span> stats <span class="kw">else</span> {<span class="str">"error"</span>: <span class="str">"not found"</span>})
+
+TOOLS = [
+    {<span class="str">"name"</span>: <span class="str">"get_employee"</span>, <span class="str">"description"</span>: <span class="str">"Get employee info by ID. Use for specific employee questions."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"employee_id"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}}, <span class="str">"required"</span>: [<span class="str">"employee_id"</span>]}},
+    {<span class="str">"name"</span>: <span class="str">"get_department_stats"</span>, <span class="str">"description"</span>: <span class="str">"Get department stats. Use for department-level questions."</span>,
+     <span class="str">"input_schema"</span>: {<span class="str">"type"</span>: <span class="str">"object"</span>, <span class="str">"properties"</span>: {<span class="str">"department"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}}, <span class="str">"required"</span>: [<span class="str">"department"</span>]}}
+]</code></pre>
+
+      <h3>Step 2 — The Correct Agentic Loop</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">run_agent</span>(user_message: str) -> str:
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_message}]
+    iteration = <span class="num">0</span>
+    max_iterations = <span class="num">20</span>  <span class="cm"># Safety cap only — NOT primary stop mechanism</span>
+
+    <span class="kw">while</span> iteration < max_iterations:
+        iteration += <span class="num">1</span>
+        response = client.messages.create(
+            model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">1024</span>, tools=TOOLS, messages=messages
+        )
+
+        print(f<span class="str">"  [iter {iteration}] stop_reason: {response.stop_reason}"</span>)
+
+        <span class="cm"># PRIMARY stop condition — always check stop_reason</span>
+        <span class="kw">if</span> response.stop_reason == <span class="str">"end_turn"</span>:
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>):
+                    <span class="kw">return</span> block.text
+
+        <span class="kw">elif</span> response.stop_reason == <span class="str">"tool_use"</span>:
+            <span class="cm"># 1. Append assistant response FIRST</span>
+            messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+
+            <span class="cm"># 2. Execute all tools and collect results</span>
+            tool_results = []
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    result = execute_tool(block.name, block.input)
+                    tool_results.append({
+                        <span class="str">"type"</span>: <span class="str">"tool_result"</span>,
+                        <span class="str">"tool_use_id"</span>: block.id,
+                        <span class="str">"content"</span>: result
+                    })
+
+            <span class="cm"># 3. Append tool results — Claude must see them next turn</span>
+            messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: tool_results})</code></pre>
+
+      <h3>Step 3 — Test It</h3>
+      <pre><code><span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    run_agent(<span class="str">"What department is employee E002 in?"</span>)
+    run_agent(<span class="str">"Is employee E001's salary above the Engineering department average?"</span>)
+    run_agent(<span class="str">"Tell me about E003 and open positions in their department."</span>)</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Observe While Running</div>
+        <p>How many iterations does the salary comparison query take? When does <code>stop_reason</code> flip from <code>"tool_use"</code> to <code>"end_turn"</code>? Add a print of <code>len(messages)</code> each iteration to watch the history grow.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>Break It Three Ways (20 min)</h2></div>
+    <div class="task-body">
+      <p>Create three broken versions. <strong>Do not modify your working version</strong> — create new functions for each.</p>
+
+      <h3>Broken Version 1 — Natural Language Termination</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">run_agent_broken_v1</span>(user_message: str) -> str:
+    <span class="cm"># ANTI-PATTERN: checking text content instead of stop_reason</span>
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_message}]
+    <span class="kw">while</span> True:
+        response = client.messages.create(model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">1024</span>, tools=TOOLS, messages=messages)
+        text_response = <span class="str">""</span>
+        <span class="kw">for</span> block <span class="kw">in</span> response.content:
+            <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>): text_response = block.text
+        <span class="cm"># WRONG: Returns whenever ANY text appears — even mid-reasoning</span>
+        <span class="kw">if</span> text_response:
+            <span class="kw">return</span> text_response
+        <span class="kw">if</span> response.stop_reason == <span class="str">"tool_use"</span>:
+            messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+            tool_results = []
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    result = execute_tool(block.name, block.input)
+                    tool_results.append({<span class="str">"type"</span>: <span class="str">"tool_result"</span>, <span class="str">"tool_use_id"</span>: block.id, <span class="str">"content"</span>: result})
+            messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: tool_results})</code></pre>
+      <p><strong>Test with:</strong> "Is employee E001's salary above the Engineering department average?" — Does it complete both tool calls?</p>
+
+      <h3>Broken Version 2 — Missing Tool Results in History</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">run_agent_broken_v2</span>(user_message: str) -> str:
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_message}]
+    <span class="kw">while</span> True:
+        response = client.messages.create(model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">1024</span>, tools=TOOLS, messages=messages)
+        <span class="kw">if</span> response.stop_reason == <span class="str">"end_turn"</span>:
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>): <span class="kw">return</span> block.text
+        <span class="kw">elif</span> response.stop_reason == <span class="str">"tool_use"</span>:
+            messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+            <span class="cm"># ANTI-PATTERN: Execute tools but NEVER append results to history</span>
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    result = execute_tool(block.name, block.input)
+                    print(f<span class="str">"Executed {block.name} but didn't save result: {result}"</span>)
+                    <span class="cm"># Results discarded — Claude will repeat calls or hallucinate</span></code></pre>
+      <p><strong>Test with:</strong> "What is Sarah Chen's salary?" — Does Claude repeat the tool call? Does it hallucinate?</p>
+
+      <h3>Broken Version 3 — Iteration Cap as Primary Stop</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">run_agent_broken_v3</span>(user_message: str) -> str:
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_message}]
+    MAX = <span class="num">2</span>  <span class="cm"># Artificially low — primary stopping mechanism (WRONG)</span>
+    <span class="kw">for</span> i <span class="kw">in</span> range(MAX):
+        response = client.messages.create(model=<span class="str">"claude-opus-4-5"</span>, max_tokens=<span class="num">1024</span>, tools=TOOLS, messages=messages)
+        <span class="kw">if</span> response.stop_reason == <span class="str">"tool_use"</span>:
+            messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+            tool_results = []
+            <span class="kw">for</span> block <span class="kw">in</span> response.content:
+                <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                    result = execute_tool(block.name, block.input)
+                    tool_results.append({<span class="str">"type"</span>: <span class="str">"tool_result"</span>, <span class="str">"tool_use_id"</span>: block.id, <span class="str">"content"</span>: result})
+            messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: tool_results})
+    <span class="kw">for</span> block <span class="kw">in</span> response.content:
+        <span class="kw">if</span> hasattr(block, <span class="str">"text"</span>): <span class="kw">return</span> f<span class="str">"[Truncated at {MAX} iterations]: {block.text}"</span>
+    <span class="kw">return</span> <span class="str">"[No response — task cut off]"</span></code></pre>
+      <p><strong>Test with:</strong> "Is employee E001's salary above the Engineering average?" — Does MAX=2 allow both tool calls?</p>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>Reflection Questions (5 min)</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. In Broken V1, what specifically caused early termination?</div>
+        <div class="r-hint">Hint: Was there text in the response alongside the tool_use blocks?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. In Broken V2, what did Claude do when it didn't see tool results in history?</div>
+        <div class="r-hint">Did it repeat the call? Did it hallucinate? Was the final answer correct?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. In Broken V3, what happened to the salary comparison with MAX=2? Would raising to MAX=10 fix it properly?</div>
+        <div class="r-hint">Think about tasks that require 15 steps. What's wrong with any fixed cap as primary stop?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. What would happen if you forgot to append the ASSISTANT message before the tool result?</div>
+        <div class="r-hint">Messages must alternate: user → assistant → user → assistant. What happens if you break this?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. Why is a safety cap (max_iterations=50) acceptable alongside stop_reason, but not as the primary mechanism?</div>
+        <div class="r-hint">What's the purpose of the safety cap? What's the purpose of stop_reason?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>Correct implementation handles all three test queries correctly</li>
+        <li>You can explain what each broken version does wrong without looking at notes</li>
+        <li>All 5 reflection questions answered in a comment block at the bottom of your file</li>
+        <li>You understand exactly what the <code>messages</code> array looks like at each iteration</li>
+      </ul>
+      <div class="callout callout-tip">
+        <div class="callout-label">Exam Connection</div>
+        <p>The exam will describe a broken agentic loop and ask you to identify the anti-pattern. Know all four: natural language termination, missing tool results, iteration cap as primary stop, and not appending assistant response before tool results.</p>
+      </div>
+      <p style="margin-top:1rem;"><em>Next Lab: D1-02 — Multi-Agent Coordinator-Subagent System</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

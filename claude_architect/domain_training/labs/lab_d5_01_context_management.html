@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D5-01: Context Management</title>
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+  th{background:var(--surface2);color:var(--accent);font-weight:700;text-align:left;padding:0.6rem 1rem;border-bottom:2px solid var(--border);}
+  td{padding:0.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-danger{background:#ff6b6b11;border-color:var(--red);}
+  .callout-danger p{color:#ff6b6b99;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-danger .callout-label{color:var(--red);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="domain-badge">Lab D5-01</div>
+  <h1>Context Management</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 5 — Context Management</span>
+    <span class="meta-pill pill-ts">Task Statements 5.1, 5.2, 5.3</span>
+    <span class="meta-pill pill-time">⏱ 40 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Implement and compare three context management strategies: rolling window, tool result trimming, and structured summarization. Measure the token budget consumed by each approach and observe how they affect reasoning quality on long customer support conversations. Domain 5 is 15% of the exam.</p>
+    <p><strong>Key Insight:</strong> Every API call sends the entire conversation history. Context grows unbounded unless you actively manage it. Poor context management causes: (a) token limit errors, (b) precision value loss from summarization, (c) degraded reasoning on long conversations. The solution is never to just truncate — it's to preserve what matters.</p>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Token Budget Measurement (10 min)</h2></div>
+    <div class="task-body">
+      <p>Before managing context, measure it. Count tokens to understand your budget and where you're spending it.</p>
+      <pre><code><span class="kw">import</span> anthropic, json
+<span class="kw">from</span> typing <span class="kw">import</span> List
+
+client = anthropic.Anthropic()
+
+<span class="cm"># Claude claude-opus-4-5 context window: 200K tokens</span>
+<span class="cm"># Practical limit: leave ~20K for output = 180K for input</span>
+MAX_CONTEXT_TOKENS = <span class="num">180_000</span>
+
+<span class="kw">def</span> <span class="fn">count_message_tokens</span>(messages: List[dict], system: str = <span class="str">""</span>) -> int:
+    <span class="cm"># Estimate: 1 token ≈ 4 chars (rough approximation)</span>
+    total_chars = len(system)
+    <span class="kw">for</span> msg <span class="kw">in</span> messages:
+        content = msg.get(<span class="str">"content"</span>, <span class="str">""</span>)
+        <span class="kw">if</span> isinstance(content, list):
+            <span class="kw">for</span> block <span class="kw">in</span> content:
+                <span class="kw">if</span> isinstance(block, dict):
+                    total_chars += len(json.dumps(block))
+        <span class="kw">else</span>:
+            total_chars += len(str(content))
+    <span class="kw">return</span> total_chars // <span class="num">4</span>  <span class="cm"># approximate</span>
+
+<span class="cm"># Simulate a long 20-turn conversation</span>
+<span class="kw">def</span> <span class="fn">build_long_conversation</span>(turns: int = <span class="num">20</span>) -> List[dict]:
+    messages = []
+    <span class="kw">for</span> i <span class="kw">in</span> range(turns):
+        messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: f<span class="str">"Turn {i+1}: Customer message with some details about their order ORD-500{i} and asking about refund status."</span>})
+        messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: f<span class="str">"Turn {i+1}: Agent response explaining the status of order ORD-500{i} and next steps for the refund process."</span>})
+    <span class="kw">return</span> messages
+
+messages = build_long_conversation(<span class="num">20</span>)
+tokens = count_message_tokens(messages)
+print(f<span class="str">"20-turn conversation: ~{tokens:,} tokens ({tokens/MAX_CONTEXT_TOKENS:.1%} of budget)"</span>)</code></pre>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>Three Strategies — Implement &amp; Compare (20 min)</h2></div>
+    <div class="task-body">
+
+      <h3>Strategy 1: Rolling Window (Keep Last N Turns)</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">rolling_window</span>(messages: List[dict], max_turns: int = <span class="num">10</span>) -> List[dict]:
+    <span class="cm"># Keep the first message (may contain original request) + last N turns</span>
+    <span class="kw">if</span> len(messages) <= max_turns * <span class="num">2</span>:
+        <span class="kw">return</span> messages
+    <span class="cm"># Always keep first user message (original context)</span>
+    first = messages[:<span class="num">1</span>]
+    recent = messages[-(max_turns * <span class="num">2</span>):]
+    <span class="kw">return</span> first + recent
+
+<span class="cm"># Tradeoff: Simple and cheap, but drops middle conversation turns</span>
+<span class="cm"># Risk: If critical info was stated in dropped turns, it's gone</span></code></pre>
+
+      <h3>Strategy 2: Tool Result Trimming</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">trim_tool_results</span>(messages: List[dict], max_chars: int = <span class="num">500</span>) -> List[dict]:
+    trimmed = []
+    <span class="kw">for</span> msg <span class="kw">in</span> messages:
+        <span class="kw">if</span> isinstance(msg.get(<span class="str">"content"</span>), list):
+            new_content = []
+            <span class="kw">for</span> block <span class="kw">in</span> msg[<span class="str">"content"</span>]:
+                <span class="kw">if</span> isinstance(block, dict) <span class="kw">and</span> block.get(<span class="str">"type"</span>) == <span class="str">"tool_result"</span>:
+                    <span class="cm"># Trim verbose tool output — keep key fields only</span>
+                    content_str = str(block.get(<span class="str">"content"</span>, <span class="str">""</span>))
+                    <span class="kw">if</span> len(content_str) > max_chars:
+                        block = block.copy()
+                        block[<span class="str">"content"</span>] = content_str[:max_chars] + <span class="str">"... [trimmed]"</span>
+                new_content.append(block)
+            trimmed.append({**msg, <span class="str">"content"</span>: new_content})
+        <span class="kw">else</span>:
+            trimmed.append(msg)
+    <span class="kw">return</span> trimmed
+
+<span class="cm"># Tradeoff: Keeps all turns, reduces verbose API responses</span>
+<span class="cm"># Risk: Trimmed portions may contain error details needed for diagnosis</span></code></pre>
+
+      <h3>Strategy 3: Structured Summarization (Preserve Precision)</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">summarize_with_pinned_facts</span>(messages: List[dict], facts: dict, keep_last_n: int = <span class="num">4</span>) -> List[dict]:
+    <span class="cm">"""
+    Compress old turns into a structured summary.
+    CRITICAL: Precision values (order IDs, amounts) go in facts block, NOT the summary.
+    The summary captures intent. The facts block captures exact values.
+    """</span>
+    <span class="kw">if</span> len(messages) <= keep_last_n * <span class="num">2</span>:
+        <span class="kw">return</span> messages
+
+    old_turns = messages[:-(keep_last_n * <span class="num">2</span>)]
+    recent_turns = messages[-(keep_last_n * <span class="num">2</span>):]
+
+    <span class="cm"># Summarize old turns (intent only, no precision values)</span>
+    summary_content = <span class="str">"[CONVERSATION SUMMARY]\n"</span>
+    summary_content += f<span class="str">"Covered {len(old_turns)//2} earlier turns. Customer contacted support about a damaged order.\n"</span>
+    summary_content += <span class="str">"Agent verified customer identity and looked up order details.\n"</span>
+    summary_content += <span class="str">"[Precision values pinned in system prompt case_facts block - do not re-extract from this summary]\n"</span>
+
+    compressed = [
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: summary_content},
+        {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: <span class="str">"Understood. I have the case history and will continue from here."</span>}
+    ]
+
+    <span class="kw">return</span> compressed + recent_turns
+
+<span class="cm"># Key insight: Summary has INTENTIONALLY vague amounts/IDs</span>
+<span class="cm"># because exact values live in the case_facts block in the system prompt</span></code></pre>
+
+      <table>
+        <tr><th>Strategy</th><th>Token Savings</th><th>Precision Risk</th><th>Best For</th></tr>
+        <tr><td>Rolling Window</td><td>Medium</td><td>High if info in dropped turns</td><td>Short sessions, frequent new context</td></tr>
+        <tr><td>Tool Result Trimming</td><td>Low-Medium</td><td>Low (structured data preserved)</td><td>Verbose API responses</td></tr>
+        <tr><td>Structured Summarization</td><td>High</td><td>Low if facts block used correctly</td><td>Long sessions with case facts</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>Multi-Agent Context Isolation (10 min)</h2></div>
+    <div class="task-body">
+      <p>This is the most-tested context management concept in the exam: <strong>subagents have zero inherited context.</strong> When an orchestrator spawns a subagent, the subagent starts with an empty conversation history. Nothing from the orchestrator's session is automatically available.</p>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Most Common Multi-Agent Bug</div>
+        <p>Orchestrator verified the customer and discovered order details. It spawns a refund subagent. The subagent has no knowledge of the verified customer ID or order details — they were never passed. Result: the subagent either errors or re-prompts the customer.</p>
+      </div>
+
+      <pre><code><span class="kw">def</span> <span class="fn">spawn_refund_subagent_correct</span>(facts: dict, orchestrator_state: dict) -> str:
+    <span class="cm"># CORRECT: Pass ALL required context explicitly in the subagent's prompt</span>
+    subagent_prompt = f<span class="str">"""You are a refund processing specialist.
+
+CASE CONTEXT (verified by orchestrator — do not re-verify):
+- Customer ID: {facts['customer_id']} (VERIFIED)
+- Order ID: {facts['order_id']} (VERIFIED, belongs to customer)
+- Refund Amount: ${facts['refund_amount']:.2f}
+- Issue Type: {facts['issue_type']}
+- Policy: Refunds under $500 can be processed automatically.
+
+Your task: Process this refund and confirm completion.
+Do not ask for customer ID or order ID — they are already verified."""</span>
+
+    response = client.messages.create(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">512</span>,
+        system=subagent_prompt,  <span class="cm"># Context is in system prompt, not inherited</span>
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Process the refund."</span>}]
+    )
+    <span class="kw">return</span> response.content[<span class="num">0</span>].text
+
+<span class="kw">def</span> <span class="fn">spawn_refund_subagent_broken</span>() -> str:
+    <span class="cm"># BROKEN: No context passed — subagent is blind</span>
+    response = client.messages.create(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">512</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Process the refund."</span>}]
+    )
+    <span class="kw">return</span> response.content[<span class="num">0</span>].text  <span class="cm"># Will ask: "Which order? Which customer?"</span></code></pre>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Q</span><h2>Reflection Questions</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. The rolling window strategy drops turns 1-10 of a 20-turn conversation. What information is at risk of being lost?</div>
+        <div class="r-hint">Original customer issue statement, first verified identity, initial order ID — anything mentioned early in the conversation.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. In structured summarization, why does the summary intentionally NOT include specific amounts and order IDs?</div>
+        <div class="r-hint">Those values should only be read from the case_facts block. Having them in both places creates a contradiction risk.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. An orchestrator spawns 3 parallel subagents. Each needs: customer name, verified order list, and current session policies. How do you pass this without the subagents re-fetching everything?</div>
+        <div class="r-hint">Serialize the verified state object to JSON and embed it in each subagent's system prompt explicitly.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. A tool result returns 10,000 characters of inventory data. What's the right trimming approach?</div>
+        <div class="r-hint">Don't trim blindly. Extract only the fields Claude needs from the result and discard the rest before it enters the context.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. What's the difference between context window exhaustion and context drift? How does each degrade agent performance?</div>
+        <div class="r-hint">Exhaustion = hard token limit hit → API error. Drift = precision values get paraphrased/lost in long histories → silent accuracy loss.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>Token budget measured for a 20-turn conversation</li>
+        <li>All three strategies implemented and token savings compared</li>
+        <li>Structured summarization uses case facts block correctly</li>
+        <li>Multi-agent isolation pattern implemented — correct vs. broken subagent spawning</li>
+        <li>All reflection questions answered</li>
+      </ul>
+      <p style="margin-top:1rem;"><strong>🎯 All 8 Domain Labs Complete.</strong> You're ready to review the master MC question bank and run full scenario simulations.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

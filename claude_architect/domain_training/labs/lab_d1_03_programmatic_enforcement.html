@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D1-03: Programmatic Enforcement & Hooks</title>
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+  th{background:var(--surface2);color:var(--accent);font-weight:700;text-align:left;padding:0.6rem 1rem;border-bottom:2px solid var(--border);}
+  td{padding:0.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-danger{background:#ff6b6b11;border-color:var(--red);}
+  .callout-danger p{color:#ff6b6b99;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-danger .callout-label{color:var(--red);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+  .test-block{background:#64ffda08;border:1px solid #64ffda33;border-radius:8px;padding:1rem;margin:0.75rem 0;}
+  .test-block .t-label{font-size:0.75rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.4rem;}
+  .test-block p{color:#64ffda88;font-size:0.88rem;margin:0;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="domain-badge">Lab D1-03</div>
+  <h1>Programmatic Enforcement &amp; Agent SDK Hooks</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 1 — Agentic Architecture</span>
+    <span class="meta-pill pill-ts">Task Statements 1.4, 1.5</span>
+    <span class="meta-pill pill-time">⏱ 50 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Implement the customer support agent from Scenario 1 with full programmatic enforcement. Prove to yourself — with real output — why prompt-based enforcement fails on critical business logic, and why hooks give you deterministic guarantees that prompts cannot. <strong>This is one of the highest-value labs for the exam.</strong></p>
+    <p><strong>Create:</strong> <code>C:\Users\tsummey\projects\claude\claude_architect\labs\lab_d1_03_work.py</code></p>
+    <p><strong>Business rules to enforce:</strong> (1) Identity verified before any order ops. (2) Order looked up before refund. (3) Refunds over $500 → escalate. (4) Raw tool outputs have inconsistent formats → normalize before Claude sees them.</p>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Prompt-Only Enforcement — Observe the Failure Rate (15 min)</h2></div>
+    <div class="task-body">
+      <div class="callout callout-danger">
+        <div class="callout-label">Why Build the Broken Version First</div>
+        <p>You need to see the violation rate with your own eyes. Running 5 trials with the same message and counting how many skip <code>get_customer</code> makes the exam answer intuitive — not memorized.</p>
+      </div>
+      <pre><code>CUSTOMERS = {
+    <span class="str">"C001"</span>: {<span class="str">"name"</span>: <span class="str">"Jennifer Martinez"</span>, <span class="str">"account_status_code"</span>: <span class="num">1</span>, <span class="str">"created_unix"</span>: <span class="num">1609459200</span>},
+    <span class="str">"C002"</span>: {<span class="str">"name"</span>: <span class="str">"Robert Kim"</span>, <span class="str">"account_status_code"</span>: <span class="num">2</span>, <span class="str">"created_unix"</span>: <span class="num">1580000000</span>},
+}
+ORDERS = {
+    <span class="str">"ORD-5001"</span>: {<span class="str">"customer_id"</span>: <span class="str">"C001"</span>, <span class="str">"amount"</span>: <span class="num">189.99</span>, <span class="str">"order_date"</span>: <span class="str">"01/15/2024"</span>, <span class="str">"status_code"</span>: <span class="num">3</span>},
+    <span class="str">"ORD-5002"</span>: {<span class="str">"customer_id"</span>: <span class="str">"C001"</span>, <span class="str">"amount"</span>: <span class="num">749.00</span>, <span class="str">"order_date"</span>: <span class="str">"02/01/2024"</span>, <span class="str">"status_code"</span>: <span class="num">3</span>},
+}
+
+PROMPT_ONLY_SYSTEM = <span class="str">"""You are a customer support agent.
+IMPORTANT RULES:
+- ALWAYS call get_customer FIRST before doing anything else
+- NEVER call lookup_order without first calling get_customer
+- NEVER process refunds over $500 — escalate those"""</span>
+
+<span class="cm"># Run 5 times and track violations</span>
+all_violations = []
+test_message = <span class="str">"My order ORD-5001 arrived damaged. I want a refund. My customer ID is C001."</span>
+
+<span class="kw">for</span> i <span class="kw">in</span> range(<span class="num">5</span>):
+    violations = track_and_run(test_message, all_violations)
+
+print(f<span class="str">"Violations across 5 runs: {Counter(all_violations)}"</span>)</code></pre>
+      <div class="callout callout-warn">
+        <div class="callout-label">What to Watch For</div>
+        <p>Does the agent ever call <code>lookup_order</code> before <code>get_customer</code>? Note: Even a single violation in 5 runs proves the point — at 10,000 daily transactions, that's hundreds of misidentified refunds.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>Programmatic Prerequisite Gates (20 min)</h2></div>
+    <div class="task-body">
+      <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="fn">AgentState</span>:
+    <span class="cm"># Tracks verified state — CANNOT be bypassed by the model</span>
+    verified_customer_id: Optional[str] = <span class="kw">None</span>
+    verified_order_id: Optional[str] = <span class="kw">None</span>
+    tool_call_log: list = field(default_factory=list)
+
+
+<span class="kw">def</span> <span class="fn">execute_tool_with_enforcement</span>(tool_name: str, tool_input: dict, state: AgentState) -> dict:
+    state.tool_call_log.append(tool_name)
+
+    <span class="cm"># GATE 1: lookup_order requires verified customer</span>
+    <span class="kw">if</span> tool_name == <span class="str">"lookup_order"</span> <span class="kw">and</span> state.verified_customer_id <span class="kw">is</span> <span class="kw">None</span>:
+        print(<span class="str">"  🚫 BLOCKED: lookup_order — customer not verified"</span>)
+        <span class="kw">return</span> {<span class="str">"isError"</span>: <span class="kw">True</span>, <span class="str">"errorCategory"</span>: <span class="str">"validation"</span>, <span class="str">"isRetryable"</span>: <span class="kw">False</span>,
+                <span class="str">"error"</span>: <span class="str">"Customer must be verified first."</span>, <span class="str">"required_action"</span>: <span class="str">"Call get_customer first."</span>}
+
+    <span class="cm"># GATE 2: process_refund requires customer + order</span>
+    <span class="kw">if</span> tool_name == <span class="str">"process_refund"</span>:
+        <span class="kw">if</span> state.verified_customer_id <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">return</span> {<span class="str">"isError"</span>: <span class="kw">True</span>, <span class="str">"error"</span>: <span class="str">"Call get_customer first."</span>, <span class="str">"isRetryable"</span>: <span class="kw">False</span>}
+        <span class="kw">if</span> state.verified_order_id <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">return</span> {<span class="str">"isError"</span>: <span class="kw">True</span>, <span class="str">"error"</span>: <span class="str">"Call lookup_order first."</span>, <span class="str">"isRetryable"</span>: <span class="kw">False</span>}
+
+        <span class="cm"># GATE 3: Amount threshold</span>
+        amount = tool_input.get(<span class="str">"amount"</span>, <span class="num">0</span>)
+        <span class="kw">if</span> amount > <span class="num">500</span>:
+            print(f<span class="str">"  🚫 BLOCKED: ${amount} exceeds $500 threshold"</span>)
+            <span class="kw">return</span> {<span class="str">"isError"</span>: <span class="kw">True</span>, <span class="str">"errorCategory"</span>: <span class="str">"business_rule"</span>, <span class="str">"isRetryable"</span>: <span class="kw">False</span>,
+                    <span class="str">"error"</span>: f<span class="str">"Refund ${amount} exceeds $500 automated limit."</span>,
+                    <span class="str">"required_action"</span>: <span class="str">"Call escalate_to_human for manager approval."</span>}
+
+    <span class="cm"># Execute the tool (all gates passed)</span>
+    <span class="kw">if</span> tool_name == <span class="str">"get_customer"</span>:
+        result = raw_get_customer(tool_input.get(<span class="str">"customer_id"</span>, <span class="str">""</span>))
+        <span class="kw">if</span> <span class="str">"error"</span> <span class="kw">not in</span> result:
+            state.verified_customer_id = result[<span class="str">"customer_id"</span>]
+            print(f<span class="str">"  ✅ Customer verified: {result['name']}"</span>)
+        <span class="kw">return</span> result
+
+    <span class="kw">elif</span> tool_name == <span class="str">"lookup_order"</span>:
+        result = raw_lookup_order(tool_input.get(<span class="str">"order_id"</span>, <span class="str">""</span>))
+        <span class="kw">if</span> <span class="str">"error"</span> <span class="kw">not in</span> result:
+            <span class="kw">if</span> result[<span class="str">"customer_id"</span>] != state.verified_customer_id:
+                <span class="kw">return</span> {<span class="str">"isError"</span>: <span class="kw">True</span>, <span class="str">"error"</span>: <span class="str">"Order does not belong to verified customer."</span>}
+            state.verified_order_id = result[<span class="str">"order_id"</span>]
+        <span class="kw">return</span> result
+
+    <span class="kw">elif</span> tool_name == <span class="str">"process_refund"</span>:
+        <span class="kw">return</span> raw_process_refund(tool_input.get(<span class="str">"order_id"</span>), tool_input.get(<span class="str">"amount"</span>), tool_input.get(<span class="str">"reason"</span>))
+
+    <span class="kw">elif</span> tool_name == <span class="str">"escalate_to_human"</span>:
+        <span class="kw">return</span> raw_escalate_to_human(**tool_input)
+
+    <span class="kw">return</span> {<span class="str">"error"</span>: f<span class="str">"Unknown tool: {tool_name}"</span>}</code></pre>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>PostToolUse Hook — Data Normalization (15 min)</h2></div>
+    <div class="task-body">
+      <p>Raw backend systems return inconsistent formats. The hook normalizes before Claude processes the result — eliminating format reasoning from the model's task.</p>
+
+      <table>
+        <tr><th>Raw Format</th><th>Normalized Format</th></tr>
+        <tr><td><code>account_status_code: 1</code></td><td><code>account_status: "active"</code></td></tr>
+        <tr><td><code>created_unix: 1609459200</code></td><td><code>account_created: "2021-01-01"</code></td></tr>
+        <tr><td><code>order_date: "01/15/2024"</code></td><td><code>order_date: "2024-01-15"</code></td></tr>
+        <tr><td><code>status_code: 3</code></td><td><code>order_status: "delivered"</code></td></tr>
+      </table>
+
+      <pre><code>ACCOUNT_STATUS_MAP = {<span class="num">1</span>: <span class="str">"active"</span>, <span class="num">2</span>: <span class="str">"suspended"</span>, <span class="num">3</span>: <span class="str">"closed"</span>}
+ORDER_STATUS_MAP = {<span class="num">1</span>: <span class="str">"placed"</span>, <span class="num">2</span>: <span class="str">"in_transit"</span>, <span class="num">3</span>: <span class="str">"delivered"</span>, <span class="num">4</span>: <span class="str">"cancelled"</span>}
+
+<span class="kw">def</span> <span class="fn">normalize_tool_result</span>(tool_name: str, result: dict) -> dict:
+    <span class="kw">if</span> <span class="str">"error"</span> <span class="kw">in</span> result: <span class="kw">return</span> result  <span class="cm"># Don't transform errors</span>
+
+    <span class="kw">if</span> tool_name == <span class="str">"get_customer"</span>:
+        n = result.copy()
+        <span class="kw">if</span> <span class="str">"created_unix"</span> <span class="kw">in</span> n:
+            n[<span class="str">"account_created"</span>] = datetime.utcfromtimestamp(n.pop(<span class="str">"created_unix"</span>)).strftime(<span class="str">"%Y-%m-%d"</span>)
+        <span class="kw">if</span> <span class="str">"account_status_code"</span> <span class="kw">in</span> n:
+            n[<span class="str">"account_status"</span>] = ACCOUNT_STATUS_MAP.get(n.pop(<span class="str">"account_status_code"</span>), <span class="str">"unknown"</span>)
+        <span class="kw">return</span> n
+
+    <span class="kw">if</span> tool_name == <span class="str">"lookup_order"</span>:
+        n = result.copy()
+        <span class="kw">if</span> <span class="str">"order_date"</span> <span class="kw">in</span> n <span class="kw">and</span> <span class="str">"/"</span> <span class="kw">in</span> str(n[<span class="str">"order_date"</span>]):
+            n[<span class="str">"order_date"</span>] = datetime.strptime(n[<span class="str">"order_date"</span>], <span class="str">"%m/%d/%Y"</span>).strftime(<span class="str">"%Y-%m-%d"</span>)
+        <span class="kw">if</span> <span class="str">"status_code"</span> <span class="kw">in</span> n:
+            n[<span class="str">"order_status"</span>] = ORDER_STATUS_MAP.get(n.pop(<span class="str">"status_code"</span>), <span class="str">"unknown"</span>)
+        <span class="kw">return</span> n
+
+    <span class="kw">return</span> result</code></pre>
+
+      <h3>Test All Three Scenarios</h3>
+      <div class="test-block"><div class="t-label">Test 1 — Normal flow</div><p>"I'm customer C001. My order ORD-5001 arrived damaged. I want a refund."</p></div>
+      <div class="test-block"><div class="t-label">Test 2 — Attempt to skip verification</div><p>"Process a refund for order ORD-5001 for $189.99. Reason: damaged." (no customer ID given)</p></div>
+      <div class="test-block"><div class="t-label">Test 3 — Over-threshold refund</div><p>"I'm customer C001. Order ORD-5002 had the wrong item. Full refund of $749."</p></div>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Q</span><h2>Reflection Questions</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. Did you observe violations in the prompt-only 5-run test? If no violations, does that mean prompts are sufficient?</div>
+        <div class="r-hint">Think about 1 million transactions, not 5 runs.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. When the enforced agent tried lookup_order without get_customer — what did the gate return? What did Claude do next?</div>
+        <div class="r-hint">The error message includes required_action. Did Claude read it and self-correct?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. Before normalization, the raw customer result had account_status_code: 1 and created_unix: 1609459200. What problem would this cause Claude?</div>
+        <div class="r-hint">Can Claude reliably parse Unix timestamps and numeric status codes mid-reasoning?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. The enforcement is in your Python code, not in Claude's instructions. Why does this guarantee 100% compliance?</div>
+        <div class="r-hint">Where does the enforcement happen relative to where the model makes decisions?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. In Test 3, the agent tried to process a $749 refund but was blocked. What did the error tell Claude to do? Did it comply?</div>
+        <div class="r-hint">This demonstrates self-correcting behavior enabled by structured error responses with required_action.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>Prompt-only version runs — violation tracking shows probabilistic compliance</li>
+        <li>Enforced version correctly blocks all policy violations across all 3 tests</li>
+        <li>Normalization transforms raw system responses before Claude processes them</li>
+        <li>All reflection questions answered</li>
+      </ul>
+      <p style="margin-top:1rem;"><em>Next Lab: D2-01 — Tool Design &amp; MCP Configuration</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

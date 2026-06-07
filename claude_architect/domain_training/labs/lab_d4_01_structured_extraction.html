@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D4-01: Structured Extraction & Prompt Engineering</title>
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#21253a;--border:#2e3350;--accent:#6c8aff;--accent2:#a78bfa;--text:#e2e8f0;--muted:#8892b0;--code-bg:#161b2e;--green:#64ffda;--yellow:#ffd166;--red:#ff6b6b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .hero{background:linear-gradient(135deg,#1a1d27 0%,#161b2e 50%,#1a1d27 100%);border-bottom:1px solid var(--border);padding:3rem 2rem 2rem;text-align:center;}
+  .domain-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 1rem;border-radius:100px;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+  .meta-row{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;}
+  .meta-pill{display:inline-block;font-size:0.8rem;font-weight:600;padding:0.25rem 0.9rem;border-radius:100px;}
+  .pill-domain{background:#6c8aff22;border:1px solid #6c8aff55;color:var(--accent);}
+  .pill-time{background:#ffd16622;border:1px solid #ffd16655;color:var(--yellow);}
+  .pill-ts{background:#64ffda22;border:1px solid #64ffda55;color:var(--green);}
+  .container{max-width:960px;margin:0 auto;padding:2rem;}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;}
+  .overview-card p{color:var(--muted);margin-bottom:0.75rem;}
+  .task-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden;}
+  .task-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+  .task-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:6px;}
+  .task-header h2{font-size:1.1rem;font-weight:700;color:var(--text);}
+  .task-body{padding:1.5rem;}
+  h3{font-size:1rem;font-weight:700;color:var(--accent2);margin:1.5rem 0 0.75rem;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:0.75rem;}
+  strong{color:var(--text);}
+  code{font-family:'Cascadia Code','Fira Code','Consolas',monospace;background:var(--code-bg);color:var(--green);padding:0.1em 0.4em;border-radius:4px;font-size:0.88em;}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;overflow-x:auto;margin:1rem 0;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:0.84rem;line-height:1.6;color:#cdd6f4;}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit;}
+  .kw{color:#89b4fa;}.str{color:#a6e3a1;}.cm{color:#6c7086;font-style:italic;}.fn{color:#89dceb;}.num{color:#fab387;}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+  th{background:var(--surface2);color:var(--accent);font-weight:700;text-align:left;padding:0.6rem 1rem;border-bottom:2px solid var(--border);}
+  td{padding:0.55rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{color:var(--text);font-weight:600;}
+  .callout{border-radius:10px;padding:1rem 1.25rem;margin:1rem 0;border-left:4px solid;}
+  .callout-warn{background:#ffd16611;border-color:var(--yellow);}
+  .callout-warn p{color:#ffd16699;}
+  .callout-tip{background:#64ffda11;border-color:var(--green);}
+  .callout-tip p{color:#64ffda99;}
+  .callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+  .callout-warn .callout-label{color:var(--yellow);}
+  .callout-tip .callout-label{color:var(--green);}
+  ul,ol{padding-left:1.5rem;color:var(--muted);margin-bottom:0.75rem;}
+  li{margin-bottom:0.3rem;}
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:0.4rem 0 0.4rem 1.8rem;position:relative;color:var(--muted);}
+  .checklist li::before{content:"✅";position:absolute;left:0;}
+  .reflection-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin:1rem 0;}
+  .reflection-block .r-q{color:var(--text);font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;}
+  .reflection-block .r-hint{color:var(--muted);font-size:0.84rem;font-style:italic;}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;}
+  .compare-bad{background:#ff6b6b0a;border:1px solid #ff6b6b33;border-radius:8px;padding:1rem;}
+  .compare-good{background:#64ffda0a;border:1px solid #64ffda33;border-radius:8px;padding:1rem;}
+  .compare-label{font-size:0.72rem;font-weight:800;text-transform:uppercase;margin-bottom:0.5rem;}
+  .compare-bad .compare-label{color:var(--red);}
+  .compare-good .compare-label{color:var(--green);}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="domain-badge">Lab D4-01</div>
+  <h1>Structured Extraction &amp; Prompt Engineering</h1>
+  <div class="meta-row">
+    <span class="meta-pill pill-domain">Domain 4 — Prompt Engineering</span>
+    <span class="meta-pill pill-ts">Task Statements 4.1, 4.2, 4.3</span>
+    <span class="meta-pill pill-time">⏱ 45 minutes</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="overview-card">
+    <p><strong>Objective:</strong> Extract precision values from unstructured customer messages into typed Python objects. Measure extraction accuracy against a labeled dataset. Build the "case facts block" pattern to protect critical values from context window summarization. Domain 4 is 20% of the exam.</p>
+    <p><strong>Key Insight:</strong> Agents fail not because Claude can't reason — they fail because critical facts (order IDs, amounts, dates) get paraphrased or lost in context compression. The case facts block pins exact values outside the summarized history.</p>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 1</span><h2>Extraction Schema Design (15 min)</h2></div>
+    <div class="task-body">
+      <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+<span class="kw">import</span> json, anthropic
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="fn">CaseFacts</span>:
+    <span class="cm"># Exact precision values extracted from customer message</span>
+    customer_id: Optional[str] = <span class="kw">None</span>        <span class="cm"># e.g., "C001"</span>
+    order_id: Optional[str] = <span class="kw">None</span>           <span class="cm"># e.g., "ORD-5001"</span>
+    refund_amount: Optional[float] = <span class="kw">None</span>    <span class="cm"># e.g., 189.99</span>
+    issue_type: Optional[str] = <span class="kw">None</span>         <span class="cm"># "damaged", "wrong_item", "not_received"</span>
+    human_requested: bool = <span class="kw">False</span>            <span class="cm"># Explicit request for human agent</span>
+
+EXTRACTION_PROMPT = <span class="str">"""Extract case facts from this customer message.
+Return ONLY valid JSON with these exact keys:
+- customer_id: string or null
+- order_id: string or null (format: ORD-XXXX)
+- refund_amount: number or null (USD)
+- issue_type: one of ["damaged", "wrong_item", "not_received", "other"] or null
+- human_requested: boolean (true if customer explicitly asks for human/agent/person)
+
+Customer message:
+{message}"""</span>
+
+client = anthropic.Anthropic()
+
+<span class="kw">def</span> <span class="fn">extract_case_facts</span>(message: str) -> CaseFacts:
+    response = client.messages.create(
+        model=<span class="str">"claude-opus-4-5"</span>,
+        max_tokens=<span class="num">256</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: EXTRACTION_PROMPT.format(message=message)}]
+    )
+    text = response.content[<span class="num">0</span>].text.strip()
+    <span class="kw">if</span> text.startswith(<span class="str">"```"</span>):
+        text = text.split(<span class="str">"\n"</span>, <span class="num">1</span>)[<span class="num">1</span>].rsplit(<span class="str">"```"</span>, <span class="num">1</span>)[<span class="num">0</span>]
+    data = json.loads(text)
+    <span class="kw">return</span> CaseFacts(**data)</code></pre>
+    </div>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 2</span><h2>Labeled Dataset &amp; Accuracy Measurement (15 min)</h2></div>
+    <div class="task-body">
+      <pre><code>TEST_CASES = [
+    {
+        <span class="str">"message"</span>: <span class="str">"Hi, I'm customer C001 and my order ORD-5001 arrived completely smashed. I want my $189.99 back."</span>,
+        <span class="str">"expected"</span>: CaseFacts(customer_id=<span class="str">"C001"</span>, order_id=<span class="str">"ORD-5001"</span>, refund_amount=<span class="num">189.99</span>, issue_type=<span class="str">"damaged"</span>, human_requested=<span class="kw">False</span>)
+    },
+    {
+        <span class="str">"message"</span>: <span class="str">"I received the completely wrong product! Order number ORD-5002. I need to speak with a real person."</span>,
+        <span class="str">"expected"</span>: CaseFacts(customer_id=<span class="kw">None</span>, order_id=<span class="str">"ORD-5002"</span>, refund_amount=<span class="kw">None</span>, issue_type=<span class="str">"wrong_item"</span>, human_requested=<span class="kw">True</span>)
+    },
+    {
+        <span class="str">"message"</span>: <span class="str">"My package never arrived. I ordered it 3 weeks ago. Customer ID: C002, order ORD-5003."</span>,
+        <span class="str">"expected"</span>: CaseFacts(customer_id=<span class="str">"C002"</span>, order_id=<span class="str">"ORD-5003"</span>, refund_amount=<span class="kw">None</span>, issue_type=<span class="str">"not_received"</span>, human_requested=<span class="kw">False</span>)
+    },
+    {
+        <span class="str">"message"</span>: <span class="str">"I want a full refund of seven hundred and forty-nine dollars for my damaged order ORD-5002."</span>,
+        <span class="str">"expected"</span>: CaseFacts(customer_id=<span class="kw">None</span>, order_id=<span class="str">"ORD-5002"</span>, refund_amount=<span class="num">749.0</span>, issue_type=<span class="str">"damaged"</span>, human_requested=<span class="kw">False</span>)
+    },
+]
+
+<span class="kw">def</span> <span class="fn">measure_accuracy</span>() -> float:
+    correct = <span class="num">0</span>
+    <span class="kw">for</span> i, case <span class="kw">in</span> enumerate(TEST_CASES):
+        extracted = extract_case_facts(case[<span class="str">"message"</span>])
+        expected = case[<span class="str">"expected"</span>]
+        fields = [<span class="str">"customer_id"</span>, <span class="str">"order_id"</span>, <span class="str">"refund_amount"</span>, <span class="str">"issue_type"</span>, <span class="str">"human_requested"</span>]
+        field_correct = sum(<span class="num">1</span> <span class="kw">for</span> f <span class="kw">in</span> fields <span class="kw">if</span> getattr(extracted, f) == getattr(expected, f))
+        accuracy = field_correct / len(fields)
+        correct += accuracy
+        print(f<span class="str">"Case {i+1}: {field_correct}/{len(fields)} fields correct ({accuracy:.0%})"</span>)
+        <span class="kw">if</span> accuracy < <span class="num">1.0</span>:
+            <span class="kw">for</span> f <span class="kw">in</span> fields:
+                got, exp = getattr(extracted, f), getattr(expected, f)
+                <span class="kw">if</span> got != exp:
+                    print(f<span class="str">"  ❌ {f}: got={got!r}, expected={exp!r}"</span>)
+    overall = correct / len(TEST_CASES)
+    print(f<span class="str">"\nOverall accuracy: {overall:.1%} (target: 95%+)"</span>)
+    <span class="kw">return</span> overall
+
+measure_accuracy()</code></pre>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Case 4 Gotcha — Written-Out Numbers</div>
+        <p>"seven hundred and forty-nine dollars" — does Claude extract this as 749.0? This is a common extraction challenge. If it fails, add a few-shot example showing the numeric conversion to the extraction prompt.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Part 3</span><h2>The Case Facts Block Pattern (15 min)</h2></div>
+    <div class="task-body">
+      <p>When conversation history gets long, Claude compresses it. Precision values get paraphrased. "Order ORD-5001 for $189.99" becomes "a damaged order" — losing the exact values you need to call <code>process_refund</code>. The case facts block solves this.</p>
+
+      <div class="compare">
+        <div class="compare-bad">
+          <div class="compare-label">❌ Without Case Facts Block</div>
+          <pre style="margin:0;font-size:0.8rem;"><code><span class="cm"># Claude sees summarized history</span>
+system = """You are a support agent..."""
+
+messages = [
+    {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"[Long conversation history here... customer had an issue with an order and wanted a refund...]"</span>},
+]
+<span class="cm"># Critical: exact order ID, amount, customer ID</span>
+<span class="cm"># are now buried in summarized prose</span></code></pre>
+        </div>
+        <div class="compare-good">
+          <div class="compare-label">✅ With Case Facts Block</div>
+          <pre style="margin:0;font-size:0.8rem;"><code><span class="cm"># Case facts pinned in system prompt</span>
+system = <span class="str">"""You are a support agent.
+
+&lt;case_facts&gt;
+customer_id: C001
+order_id: ORD-5001
+refund_amount: 189.99
+issue_type: damaged
+human_requested: false
+&lt;/case_facts&gt;
+
+These values are authoritative. Never infer
+different values from conversation history."""</span>
+
+messages = [
+    {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"[Summarized history...]"</span>},
+]</code></pre>
+        </div>
+      </div>
+
+      <pre><code><span class="kw">def</span> <span class="fn">build_system_prompt_with_facts</span>(facts: CaseFacts) -> str:
+    facts_xml = f<span class="str">"""
+&lt;case_facts&gt;
+customer_id: {facts.customer_id or 'unknown'}
+order_id: {facts.order_id or 'unknown'}
+refund_amount: {facts.refund_amount or 'not_stated'}
+issue_type: {facts.issue_type or 'unknown'}
+human_requested: {str(facts.human_requested).lower()}
+&lt;/case_facts&gt;
+
+These case facts are authoritative. Use exact values from &lt;case_facts&gt; when
+calling tools. Never re-derive amounts, order IDs, or customer IDs from
+summarized conversation history.
+"""</span>
+    <span class="kw">return</span> BASE_SYSTEM_PROMPT + facts_xml</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Why XML Tags?</div>
+        <p>XML-style tags give Claude unambiguous structure markers that survive context summarization. Claude is trained to respect content inside tags as a named block. <code>&lt;case_facts&gt;</code> tells Claude "this is the authoritative fact block, not conversational history."</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">Q</span><h2>Reflection Questions</h2></div>
+    <div class="task-body">
+      <div class="reflection-block">
+        <div class="r-q">1. In Case 4, did Claude correctly extract 749.0 from "seven hundred and forty-nine dollars"? If not, how did you fix the prompt?</div>
+        <div class="r-hint">Adding a few-shot example in the extraction prompt with a written-out number usually fixes this.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">2. Why is the case facts block placed in the system prompt rather than in the conversation history?</div>
+        <div class="r-hint">System prompt is not summarized. Conversation history is. Where should authoritative facts live?</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">3. A customer says: "I want all of my money back." What is the correct extracted refund_amount?</div>
+        <div class="r-hint">Null — "all of my money" is not a specific amount. The agent must look up the order total.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">4. What happens to extraction accuracy if you use Claude to summarize the conversation and then try to extract facts from the summary?</div>
+        <div class="r-hint">Summaries paraphrase. "ORD-5001" might become "a recent order." Always extract from the raw original message.</div>
+      </div>
+      <div class="reflection-block">
+        <div class="r-q">5. You run the accuracy test and get 80%. What are the two most likely causes of failed extractions?</div>
+        <div class="r-hint">Written-out numbers, ambiguous issue_type categories, customer_id not stated explicitly in the message.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-section">
+    <div class="task-header"><span class="task-num">✓</span><h2>Completion Criteria</h2></div>
+    <div class="task-body">
+      <ul class="checklist">
+        <li>CaseFacts dataclass defined and extraction function runs</li>
+        <li>Accuracy test passes ≥ 95% on labeled dataset</li>
+        <li>Case facts block integrated into system prompt builder</li>
+        <li>All reflection questions answered</li>
+      </ul>
+      <p style="margin-top:1rem;"><em>Next Lab: D5-01 — Context Management</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
