@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scenario 1: Customer Support Resolution Agent</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2e3350;
+    --accent: #6c8aff;
+    --accent2: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --code-bg: #161b2e;
+    --green: #64ffda;
+    --yellow: #ffd166;
+    --red: #ff6b6b;
+    --orange: #f4a261;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #1a1d27 0%, #161b2e 50%, #1a1d27 100%); border-bottom: 1px solid var(--border); padding: 3rem 2rem 2rem; text-align: center; }
+  .domain-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 1rem; border-radius: 100px; margin-bottom: 1rem; }
+  .hero h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem; }
+  .weight-pill { display: inline-block; background: #ff6b6b22; border: 1px solid #ff6b6b55; color: var(--red); font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.9rem; border-radius: 100px; margin-top: 0.5rem; }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+  .overview-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; }
+  .overview-card p { color: var(--muted); margin-bottom: 0.75rem; }
+  .overview-card p:last-child { margin-bottom: 0; }
+  .scenarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .scenario-tag { background: var(--surface2); border: 1px solid var(--border); color: var(--accent); font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.7rem; border-radius: 6px; }
+  .task-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; overflow: hidden; }
+  .task-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .task-num { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+  .task-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  .task-body { padding: 1.5rem; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--accent2); margin: 1.5rem 0 0.75rem; }
+  h3:first-child { margin-top: 0; }
+  p { color: var(--muted); margin-bottom: 0.75rem; }
+  strong { color: var(--text); }
+  code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; background: var(--code-bg); color: var(--green); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.88em; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 0.84rem; line-height: 1.6; color: #cdd6f4; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .cm { color: #6c7086; font-style: italic; }
+  .fn { color: #89dceb; }
+  .num { color: #fab387; }
+  .dec { color: #f38ba8; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: var(--surface2); color: var(--accent); font-weight: 700; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--border); }
+  td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 600; }
+  .callout { border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; border-left: 4px solid; }
+  .callout-warn { background: #ffd16611; border-color: var(--yellow); }
+  .callout-warn p { color: #ffd16699; }
+  .callout-danger { background: #ff6b6b11; border-color: var(--red); }
+  .callout-danger p { color: #ff6b6b99; }
+  .callout-tip { background: #64ffda11; border-color: var(--green); }
+  .callout-tip p { color: #64ffda99; }
+  .callout-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .callout-warn .callout-label { color: var(--yellow); }
+  .callout-danger .callout-label { color: var(--red); }
+  .callout-tip .callout-label { color: var(--green); }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .summary-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+  .summary-item .key { font-size: 0.8rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+  .summary-item .val { font-size: 0.82rem; color: var(--muted); }
+  .exam-section { background: linear-gradient(135deg, #ffd16611, #ff6b6b11); border: 1px solid #ffd16633; border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+  .exam-section h2 { color: var(--yellow); font-size: 1.1rem; margin-bottom: 1rem; }
+  .exam-q { margin-bottom: 1.25rem; }
+  .exam-q .q { color: var(--text); font-style: italic; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .exam-q .a { color: var(--green); font-size: 0.88rem; padding-left: 1rem; border-left: 2px solid var(--green); }
+  ul { padding-left: 1.5rem; color: var(--muted); margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.3rem; }
+  .mc-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin: 1.25rem 0; }
+  .mc-block .mc-q { color: var(--text); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.92rem; }
+  .mc-block .mc-opt { color: var(--muted); font-size: 0.88rem; padding: 0.3rem 0; padding-left: 1.5rem; position: relative; }
+  .mc-block .mc-opt::before { content: attr(data-letter) ")"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .mc-block .mc-opt.correct { color: var(--green); }
+  .mc-block .mc-opt.correct::before { color: var(--green); }
+  .mc-block .mc-explain { margin-top: 0.75rem; padding: 0.75rem; background: #64ffda0d; border-left: 3px solid var(--green); border-radius: 6px; font-size: 0.85rem; color: #64ffda88; }
+  .lab-block { background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; }
+  .lab-block h3 { color: var(--accent); margin-top: 0; }
+  .lab-steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .lab-steps li { counter-increment: step; padding: 0.5rem 0 0.5rem 2.5rem; position: relative; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .lab-steps li:last-child { border-bottom: none; }
+  .lab-steps li::before { content: counter(step); position: absolute; left: 0; top: 0.5rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; width: 1.6rem; height: 1.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+  .toc { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+  .toc h3 { color: var(--accent); margin-top: 0; margin-bottom: 0.75rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .toc a { color: var(--muted); text-decoration: none; font-size: 0.85rem; display: block; padding: 0.2rem 0; }
+  .toc a:hover { color: var(--accent); }
+  .tag { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: 0.4rem; vertical-align: middle; }
+  .tag-exam { background: #ffd16622; color: var(--yellow); border: 1px solid #ffd16644; }
+  .tag-gotcha { background: #ff6b6b22; color: var(--red); border: 1px solid #ff6b6b44; }
+  .tag-perf { background: #64ffda22; color: var(--green); border: 1px solid #64ffda44; }
+  .file-block { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 1rem; margin: 0.5rem 0; font-family: monospace; font-size: 0.82rem; color: var(--accent2); }
+  .diff-add { color: var(--green); }
+  .diff-rem { color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="domain-badge">Scenario 1</div>
+  <h1>Customer Support Resolution Agent</h1>
+  <div class="weight-pill">Domains: Agentic Architecture · Tool Design · Context Management</div>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <h3>Contents</h3>
+    <a href="#setup">Scenario Setup &amp; Architecture</a>
+    <a href="#workflow">1 · Workflow Enforcement — Programmatic Gates vs Prompts</a>
+    <a href="#tools">2 · Tool Design — Descriptions, Boundaries &amp; Error Responses</a>
+    <a href="#escalation">3 · Escalation Calibration — Criteria &amp; Gotchas</a>
+    <a href="#context">4 · Context Management — Case Facts &amp; Output Trimming</a>
+    <a href="#hooks">5 · Hooks — PreToolUse &amp; PostToolUse</a>
+    <a href="#sim">Simulation — Python Code</a>
+    <a href="#labs">Labs</a>
+    <a href="#questions">Practice Questions</a>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="overview-card" id="setup">
+    <p><strong>Scenario:</strong> You are building a customer support resolution agent using the Claude Agent SDK. The agent handles high-ambiguity requests: returns, billing disputes, and account issues. Your target is <strong>80%+ first-contact resolution (FCR)</strong> while knowing when to escalate.</p>
+    <p><strong>Four MCP tools:</strong> <code>get_customer</code> · <code>lookup_order</code> · <code>process_refund</code> · <code>escalate_to_human</code></p>
+    <p><strong>The starting problem:</strong> The agent ships at ~55% FCR. It escalates simple damage replacements while attempting to autonomously handle policy exceptions. It occasionally skips <code>get_customer</code> and calls <code>lookup_order</code> directly — causing misidentified refunds.</p>
+    <div class="scenarios">
+      <span class="scenario-tag">Domain 1: Agentic Architecture</span>
+      <span class="scenario-tag">Domain 2: Tool Design &amp; MCP</span>
+      <span class="scenario-tag">Domain 5: Context Management</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: WORKFLOW ENFORCEMENT                               -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="workflow">
+    <div class="task-header">
+      <span class="task-num">1</span>
+      <h2>Workflow Enforcement — Programmatic Gates vs Prompts <span class="tag tag-exam">HIGH PRIORITY</span></h2>
+    </div>
+    <div class="task-body">
+
+      <h3>The Core Problem</h3>
+      <p>Production data shows the agent skips <code>get_customer</code> in 12% of cases, calling <code>lookup_order</code> directly with only the customer's stated name. This results in misidentified accounts and incorrect refunds. You need this to stop — permanently.</p>
+
+      <h3>Why Prompts Are Insufficient for This</h3>
+      <p>An instruction like <em>"Always call get_customer before any other tool"</em> works most of the time. But "most of the time" produces real financial errors at scale. Prompt compliance is probabilistic — even perfect prompt engineering leaves a non-zero failure rate.</p>
+
+      <table>
+        <tr><th>Enforcement Method</th><th>Compliance Rate</th><th>When to Use</th></tr>
+        <tr><td>Prompt instruction</td><td>~95–99%</td><td>Style preferences, optional guidance</td></tr>
+        <tr><td>Few-shot examples</td><td>~97–99%</td><td>Consistency for judgment calls</td></tr>
+        <tr><td><strong>Programmatic gate</strong></td><td><strong>100%</strong></td><td>Business-critical sequences with financial/legal consequences</td></tr>
+      </table>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Gotcha — "But We Added Examples"</div>
+        <p>Adding 5–8 few-shot examples showing <code>get_customer</code> called first raises compliance to ~99%. At 10,000 daily interactions, that's still 100 misidentified refunds per day. The exam knows this. Always choose programmatic enforcement for financial operations.</p>
+      </div>
+
+      <h3>The Prerequisite Gate Pattern</h3>
+      <p>The gate lives in your tool executor — the code layer that dispatches tool calls from the agent loop. It reads from a <strong>session state object</strong>, not from conversation history.</p>
+
+      <pre><code><span class="cm"># Session state — NOT conversation history</span>
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="fn">SessionState</span>:
+    verified_customer_id: Optional[str] = <span class="kw">None</span>
+    total_refunded: float = <span class="num">0.0</span>
+    escalated: bool = <span class="kw">False</span>
+
+<span class="cm"># Gate runs BEFORE every tool call</span>
+<span class="kw">def</span> <span class="fn">prerequisite_gate</span>(tool_name: str, state: SessionState) -> Optional[dict]:
+    <span class="kw">if</span> tool_name <span class="kw">in</span> (<span class="str">"lookup_order"</span>, <span class="str">"process_refund"</span>, <span class="str">"escalate_to_human"</span>):
+        <span class="kw">if</span> state.verified_customer_id <span class="kw">is</span> <span class="kw">None</span>:
+            <span class="kw">return</span> {
+                <span class="str">"isError"</span>: <span class="kw">True</span>,
+                <span class="str">"errorCategory"</span>: <span class="str">"prerequisite_not_met"</span>,
+                <span class="str">"isRetryable"</span>: <span class="kw">False</span>,
+                <span class="str">"error"</span>: <span class="str">f"Cannot call {tool_name}: customer not verified."</span>,
+                <span class="str">"required_action"</span>: <span class="str">"Call get_customer first."</span>
+            }
+    <span class="kw">return None</span>  <span class="cm"># Proceed</span></code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Why Not Just Make get_customer Required Input?</div>
+        <p>You could require <code>customer_id</code> as an input to <code>lookup_order</code>'s schema. But the agent could still provide a plausible-looking customer_id it invented. The gate checks that <code>get_customer</code> actually <em>ran and succeeded</em> by reading verified state — not trusting agent-supplied input.</p>
+      </div>
+
+      <h3>What the Gate Returns When Blocked</h3>
+      <p>The error response becomes a tool result in the conversation. Claude will read it and understand what it needs to do. This is intentional — you're giving the agent a clear, actionable recovery path.</p>
+
+      <pre><code><span class="cm"># Agent receives this as the tool result:</span>
+{
+  <span class="str">"isError"</span>: <span class="kw">True</span>,
+  <span class="str">"errorCategory"</span>: <span class="str">"prerequisite_not_met"</span>,
+  <span class="str">"isRetryable"</span>: <span class="kw">False</span>,
+  <span class="str">"error"</span>: <span class="str">"Cannot call lookup_order: customer identity not verified."</span>,
+  <span class="str">"required_action"</span>: <span class="str">"Call get_customer first to verify customer identity."</span>
+}
+<span class="cm"># Claude reads this, calls get_customer, then retries lookup_order.</span></code></pre>
+
+      <h3>Advanced Gotchas <span class="tag tag-gotcha">Common Mistakes</span></h3>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Gotcha 1 — Multiple Customer Matches</div>
+        <p><code>get_customer</code> may return an error if multiple accounts share the same name. Your gate should NOT set <code>verified_customer_id</code> until a unique customer is confirmed. If <code>get_customer</code> errors, state remains <code>None</code>. The gate continues to block. The agent will ask for more info.</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Gotcha 2 — State Lives in the Session, Not the Model</div>
+        <p>If your state is reconstructed from conversation history (e.g., scanning messages for "customer verified"), the gate can be fooled by a message that contains that text for other reasons. State must be an independent Python object populated only by actual tool success.</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Gotcha 3 — Session Restart Mid-Workflow</div>
+        <p>If the application restarts and loads a prior conversation to resume, you must also restore <code>SessionState</code> from a persistent store — not just replay conversation history. If state is lost, all gates reset, forcing re-verification. This is the CORRECT behavior — it's safer to re-verify than to assume prior verification is still valid.</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Gotcha 4 — Gate vs. Hook Distinction</div>
+        <p>The prerequisite gate enforces <strong>ordering</strong> (A must happen before B). PreToolUse hooks enforce <strong>policy</strong> (block calls that violate business rules regardless of ordering). Both are deterministic. You need both for a production system.</p>
+      </div>
+
+      <h3>Full Execution Order in the Tool Executor</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">execute_tool</span>(tool_name: str, tool_input: dict, state: SessionState) -> dict:
+    <span class="cm"># 1. Ordering gate — is it safe to call this tool yet?</span>
+    gate_error = prerequisite_gate(tool_name, state)
+    <span class="kw">if</span> gate_error:
+        <span class="kw">return</span> gate_error
+
+    <span class="cm"># 2. Policy hook — does this call violate a business rule?</span>
+    hook_error = pre_tool_use_hook(tool_name, tool_input, state)
+    <span class="kw">if</span> hook_error:
+        <span class="kw">return</span> hook_error
+
+    <span class="cm"># 3. Execute the actual tool</span>
+    result = dispatch[tool_name](**tool_input)
+
+    <span class="cm"># 4. PostToolUse — update state, normalize data</span>
+    result = post_tool_use_hook(tool_name, result, state)
+
+    <span class="kw">return</span> result</code></pre>
+
+      <h3>What the Exam Will Ask <span class="tag tag-exam">Exam Pattern</span></h3>
+      <table>
+        <tr><th>Scenario</th><th>Correct Answer</th><th>Wrong Answers</th></tr>
+        <tr><td>Agent skips get_customer 12% of the time</td><td>Programmatic prerequisite gate</td><td>Better system prompt, few-shot examples, routing classifier</td></tr>
+        <tr><td>Need 100% compliance with a tool ordering rule</td><td>Programmatic enforcement</td><td>Prompt-based instructions, confidence scoring</td></tr>
+        <tr><td>Low-stakes style preference</td><td>Prompt instruction or few-shot</td><td>Programmatic gate (overkill)</td></tr>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: TOOL DESIGN                                       -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="tools">
+    <div class="task-header">
+      <span class="task-num">2</span>
+      <h2>Tool Design — Descriptions, Boundaries &amp; Error Responses <span class="tag tag-exam">HIGH PRIORITY</span></h2>
+    </div>
+    <div class="task-body">
+
+      <h3>Why Tool Descriptions Matter Most</h3>
+      <p>Tool descriptions are the <strong>primary mechanism</strong> the model uses for tool selection. Minimal descriptions cause systematic misrouting. This is not a context window issue — it's an information gap issue.</p>
+
+      <table>
+        <tr><th>Description Quality</th><th>Effect</th></tr>
+        <tr><td>Minimal: "Retrieves customer information"</td><td>Model confuses with lookup_order; selects wrong tool for order queries</td></tr>
+        <tr><td>Rich: includes input formats, examples, negative boundaries</td><td>Model reliably selects correct tool; description IS the routing logic</td></tr>
+      </table>
+
+      <h3>The Description Blueprint</h3>
+      <p>Every production tool description should answer five questions:</p>
+      <ul>
+        <li><strong>What does it do?</strong> One sentence, action-oriented.</li>
+        <li><strong>When to use it?</strong> Trigger conditions, example queries.</li>
+        <li><strong>What does it accept?</strong> Input formats, which fields matter.</li>
+        <li><strong>What does it return?</strong> Key output fields.</li>
+        <li><strong>When NOT to use it?</strong> Explicit negative boundary — the most important and most skipped.</li>
+      </ul>
+
+      <pre><code><span class="cm"># BAD — causes get_customer / lookup_order confusion</span>
+{
+    <span class="str">"name"</span>: <span class="str">"get_customer"</span>,
+    <span class="str">"description"</span>: <span class="str">"Retrieves customer information."</span>
+}
+{
+    <span class="str">"name"</span>: <span class="str">"lookup_order"</span>,
+    <span class="str">"description"</span>: <span class="str">"Retrieves order details."</span>
+}
+
+<span class="cm"># GOOD — explicit boundaries eliminate ambiguity</span>
+{
+    <span class="str">"name"</span>: <span class="str">"get_customer"</span>,
+    <span class="str">"description"</span>: (
+        <span class="str">"Look up and VERIFY customer identity. REQUIRED first call in every interaction. "</span>
+        <span class="str">"Use when: starting any interaction. Input: name + email preferred. "</span>
+        <span class="str">"Returns: customer_id, account standing, verification status. "</span>
+        <span class="str">"Do NOT use to retrieve order details — use lookup_order for that."</span>
+    )
+}
+{
+    <span class="str">"name"</span>: <span class="str">"lookup_order"</span>,
+    <span class="str">"description"</span>: (
+        <span class="str">"Retrieve details for a specific ORDER. Use when customer references an order number, "</span>
+        <span class="str">"shipment, delivery status, or purchase. Input: order_id (format ORD-XXXX). "</span>
+        <span class="str">"Returns: item, amount, status, return window eligibility. "</span>
+        <span class="str">"REQUIRES get_customer first. Do NOT use for account/identity info."</span>
+    )
+}</code></pre>
+
+      <h3>Structured MCP Error Responses <span class="tag tag-exam">Exam Pattern</span></h3>
+      <p>Generic errors like <code>"Operation failed"</code> prevent intelligent recovery. Structured errors enable the agent to make appropriate decisions about retry, escalation, or clarification.</p>
+
+      <table>
+        <tr><th>Error Category</th><th>isRetryable</th><th>Agent Behavior</th></tr>
+        <tr><td>transient (timeout, service down)</td><td>true</td><td>Retry with backoff</td></tr>
+        <tr><td>validation (bad input, not found)</td><td>false</td><td>Ask customer for correct info</td></tr>
+        <tr><td>business_rule (threshold, policy)</td><td>false</td><td>Escalate to human</td></tr>
+        <tr><td>permission (access denied)</td><td>false</td><td>Inform agent of scope limits</td></tr>
+        <tr><td>prerequisite_not_met</td><td>false</td><td>Call required preceding tool</td></tr>
+      </table>
+
+      <pre><code><span class="cm"># Every MCP tool should return this shape on error:</span>
+{
+    <span class="str">"isError"</span>: <span class="kw">True</span>,
+    <span class="str">"errorCategory"</span>: <span class="str">"transient"</span>,    <span class="cm"># transient | validation | business_rule | permission</span>
+    <span class="str">"isRetryable"</span>: <span class="kw">True</span>,
+    <span class="str">"error"</span>: <span class="str">"Order service timed out after 5 seconds."</span>,
+    <span class="str">"action_required"</span>: <span class="str">"Retry in a few moments."</span>
+}</code></pre>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Gotcha — Empty Result vs. Error</div>
+        <p>A successful search that returns zero results is NOT an error. Return <code>{"isError": false, "results": [], "count": 0}</code>. If you return an error for "no results found," the agent may retry when there's nothing to retry — or escalate unnecessarily. The coordinator needs to know the difference between "the search failed" and "the search succeeded but found nothing."</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Gotcha — System Prompt Keyword Contamination</div>
+        <p>If your system prompt says "always look up the customer first," the word "look up" may create an association with <code>lookup_order</code> instead of <code>get_customer</code>. Tool descriptions and system prompts interact. Review both together for keyword conflicts.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: ESCALATION CALIBRATION                            -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="escalation">
+    <div class="task-header">
+      <span class="task-num">3</span>
+      <h2>Escalation Calibration — From 55% to 80%+ FCR <span class="tag tag-exam">HIGH PRIORITY</span></h2>
+    </div>
+    <div class="task-body">
+
+      <h3>The Starting Problem</h3>
+      <p>FCR is at 55%. Logs show: <strong>escalating simple damage replacements</strong> (should resolve) while <strong>attempting to handle policy exceptions autonomously</strong> (should escalate). The calibration is inverted.</p>
+
+      <h3>Root Cause: Unclear Decision Boundaries</h3>
+      <p>The agent doesn't have explicit criteria for "when is a case simple enough to resolve?" and "when does a case require human judgment?" It defaults to over-escalation on ambiguity — which sounds safe but destroys FCR and wastes human agent time.</p>
+
+      <h3>The Fix: Explicit Criteria + Few-Shot Examples</h3>
+      <p>General instructions like "only escalate complex cases" do nothing — they reproduce the ambiguity. You need <strong>specific case categories</strong> and <strong>examples showing the decision in context</strong>.</p>
+
+      <table>
+        <tr><th>Case Type</th><th>Action</th><th>Why</th></tr>
+        <tr><td>Damage/defect + evidence</td><td>RESOLVE → process_refund</td><td>Clear policy coverage, no judgment needed</td></tr>
+        <tr><td>Non-delivery confirmed in system</td><td>RESOLVE → process_refund</td><td>Objective fact, policy covers it</td></tr>
+        <tr><td>Duplicate charge confirmed</td><td>RESOLVE → process_refund</td><td>Billing error, clear entitlement</td></tr>
+        <tr><td>Customer explicitly requests human</td><td>ESCALATE IMMEDIATELY</td><td>Customer autonomy — do not attempt first</td></tr>
+        <tr><td>Return window exceeded</td><td>ESCALATE</td><td>Policy exception = human decision</td></tr>
+        <tr><td>Refund > $500</td><td>ESCALATE (blocked by hook)</td><td>Threshold policy</td></tr>
+        <tr><td>Policy silent on request</td><td>ESCALATE</td><td>Do not interpret or assume policy</td></tr>
+        <tr><td>Account access issues</td><td>ESCALATE</td><td>Outside tool scope</td></tr>
+      </table>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Gotcha 1 — Explicit Human Request</div>
+        <p>"I need to speak to a real person right now." This must trigger <code>escalate_to_human</code> IMMEDIATELY after <code>get_customer</code>. Do NOT investigate the issue first and then offer to resolve it. That violates customer autonomy and is an exam trap. The customer's preference overrides your FCR metric.</p>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Gotcha 2 — Sentiment ≠ Complexity</div>
+        <p>Using sentiment analysis to route escalation is a wrong answer. An angry customer with a simple damage replacement should still be resolved autonomously (after acknowledging frustration). A calm customer asking for a policy exception should be escalated. Sentiment and complexity are orthogonal. The exam will offer sentiment-based escalation as a distractor.</p>
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Gotcha 3 — Self-Reported Confidence Is Unreliable</div>
+        <p>Having the agent self-report a confidence score (1–10) and escalate below a threshold sounds reasonable but fails for a specific reason: LLMs are <em>overconfident on hard cases</em>. The agent that incorrectly handles a policy exception will report confidence 8/10 — because it doesn't know what it doesn't know. Confidence scoring is a wrong answer for escalation calibration.</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">Gotcha 4 — Policy Gap = Escalate, Not Interpret</div>
+        <p>Customer asks: "Can you match the competitor's price?" Your policy document covers own-site price adjustments but is silent on competitor matching. The WRONG move: interpret policy liberally and process a discount. The CORRECT move: escalate — policy is ambiguous on this specific request. When policy is silent, a human must decide.</p>
+      </div>
+
+      <h3>The Few-Shot Escalation Examples in System Prompt</h3>
+      <pre><code>ESCALATION FEW-SHOT EXAMPLES:
+
+Example 1 — Standard damage, RESOLVE:
+Customer: "My order ORD-5521 arrived with a cracked screen."
+Correct: get_customer → lookup_order → process_refund
+Reason: Clear damage, within return window, standard policy covers it.
+
+Example 2 — Explicit human request, ESCALATE IMMEDIATELY:
+Customer: "I want to speak to a manager right now."
+Correct: get_customer → escalate_to_human
+Reason: Explicit human request. Do NOT investigate first.
+
+Example 3 — Policy exception, ESCALATE:
+Customer: "I want to return this, I bought it 90 days ago."
+Correct: get_customer → lookup_order → escalate_to_human
+Reason: 90 days exceeds return window. Policy exception = human decision.
+
+Example 4 — Policy gap, ESCALATE:
+Customer: "CompetitorX has this for $20 less, can you match it?"
+Correct: get_customer → escalate_to_human
+Reason: Policy is silent on competitor matching. Do not assume authorization.</code></pre>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: CONTEXT MANAGEMENT                                -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="context">
+    <div class="task-header">
+      <span class="task-num">4</span>
+      <h2>Context Management — Preserving Critical Facts <span class="tag tag-gotcha">Common Exam Area</span></h2>
+    </div>
+    <div class="task-body">
+
+      <h3>The Problem: Summarization Loses Numbers</h3>
+      <p>In long customer support sessions, conversation history gets summarized. Summarization compresses narrative well but loses precise values: order numbers, refund amounts, dates, and account statuses get vague or disappear entirely.</p>
+
+      <div class="callout callout-danger">
+        <div class="callout-label">Example of Dangerous Summarization</div>
+        <p>Original: "Customer requested refund of $247.50 for order ORD-4410, confirmed returned on 2024-11-03."<br><br>
+        Summarized: "Customer had a return issue that was addressed." — The refund amount, order ID, and return date are gone. A follow-up action in the same session will have no facts to work with.</p>
+      </div>
+
+      <h3>The Case Facts Block Pattern</h3>
+      <p>Extract critical transactional facts into a persistent structured block that lives OUTSIDE the summarized history. Include it in every subsequent prompt.</p>
+
+      <pre><code><span class="cm"># Inject at the TOP of every prompt, before history:</span>
+CASE FACTS (authoritative — do not override with summary):
+  customer_id: CUST-1007
+  customer_name: Tom Rivera
+  verified: true
+  orders_referenced: [ORD-4410]
+  refund_amounts_discussed: [$199.00]
+  return_confirmed_date: 2024-11-03
+  resolution_status: refund_pending
+  escalated: false</code></pre>
+
+      <h3>Trimming Verbose Tool Output</h3>
+      <p>A real order lookup might return 40+ fields. Only 5 are relevant to refund resolution. Verbose tool output accumulates in context and pushes important information toward the middle of the window — where attention is lowest.</p>
+
+      <pre><code><span class="cm"># PostToolUse hook — trim before model sees it</span>
+<span class="kw">def</span> <span class="fn">post_tool_use_hook</span>(tool_name: str, result: dict, state: SessionState) -> dict:
+    <span class="kw">if</span> tool_name == <span class="str">"lookup_order"</span>:
+        <span class="cm"># Keep ONLY what matters for support resolution</span>
+        relevant_fields = [<span class="str">"order_id"</span>, <span class="str">"item"</span>, <span class="str">"amount"</span>, <span class="str">"status"</span>,
+                           <span class="str">"days_since_order"</span>, <span class="str">"within_return_window"</span>, <span class="str">"isError"</span>]
+        <span class="kw">return</span> {k: result[k] <span class="kw">for</span> k <span class="kw">in</span> relevant_fields <span class="kw">if</span> k <span class="kw">in</span> result}
+    <span class="kw">return</span> result</code></pre>
+
+      <h3>Lost-in-the-Middle Effect</h3>
+      <p>Models reliably process information at the <strong>beginning</strong> and <strong>end</strong> of long inputs, but miss content in the <strong>middle</strong>. For multi-issue sessions with multiple tool results:</p>
+      <ul>
+        <li>Put key facts summary at the <strong>beginning</strong></li>
+        <li>Put current task context at the <strong>end</strong></li>
+        <li>Use section headers to help the model navigate middle content</li>
+      </ul>
+
+      <h3>Multi-Issue Decomposition <span class="tag tag-exam">Exam Pattern</span></h3>
+      <p>Customer: "My order ORD-9901 arrived damaged AND I was billed the wrong amount last month."</p>
+      <p>The agent should decompose this into two parallel investigations, then synthesize a single response — NOT handle them sequentially in two separate exchanges.</p>
+
+      <pre><code><span class="cm"># Agent decomposes and addresses both in one pass:</span>
+Issue 1: Damaged order ORD-9901
+  → lookup_order(ORD-9901) → process_refund($85.00, "damaged on arrival")
+
+Issue 2: Billing discrepancy
+  → lookup_order(billing lookup) → process_refund($44.00, "billing error")
+
+<span class="cm"># Then synthesizes ONE response covering both resolutions</span></code></pre>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: HOOKS                                             -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="hooks">
+    <div class="task-header">
+      <span class="task-num">5</span>
+      <h2>Hooks — PreToolUse &amp; PostToolUse <span class="tag tag-exam">Exam Pattern</span></h2>
+    </div>
+    <div class="task-body">
+
+      <table>
+        <tr><th>Hook</th><th>Fires</th><th>Returns blocked error?</th><th>Use Case</th></tr>
+        <tr><td><code>PreToolUse</code></td><td>Before tool executes</td><td>Yes — intercepts call</td><td>Policy enforcement, input validation, compliance blocking</td></tr>
+        <tr><td><code>PostToolUse</code></td><td>After tool returns</td><td>No — transforms result</td><td>Data normalization, state updates, field trimming, enrichment</td></tr>
+      </table>
+
+      <h3>PreToolUse: The $500 Threshold</h3>
+      <pre><code><span class="kw">def</span> <span class="fn">pre_tool_use_hook</span>(tool_name: str, tool_input: dict, state: SessionState) -> Optional[dict]:
+    <span class="kw">if</span> tool_name == <span class="str">"process_refund"</span>:
+        amount = tool_input.get(<span class="str">"amount"</span>, <span class="num">0</span>)
+        <span class="kw">if</span> amount > <span class="num">500</span>:
+            <span class="kw">return</span> {
+                <span class="str">"isError"</span>: <span class="kw">True</span>,
+                <span class="str">"errorCategory"</span>: <span class="str">"business_rule"</span>,
+                <span class="str">"isRetryable"</span>: <span class="kw">False</span>,
+                <span class="str">"error"</span>: <span class="str">f"Refund of ${amount:.2f} exceeds the $500 automated threshold."</span>,
+                <span class="str">"action_required"</span>: <span class="str">"Use escalate_to_human for manager approval."</span>
+            }
+    <span class="kw">return None</span>  <span class="cm"># Proceed normally</span></code></pre>
+
+      <h3>PostToolUse: Format Normalization</h3>
+      <p>Different backend services return dates in different formats (Unix timestamps, ISO 8601, human-readable strings). A PostToolUse hook normalizes all of them before the model processes the result, preventing format confusion in reasoning.</p>
+
+      <pre><code><span class="kw">def</span> <span class="fn">normalize_dates</span>(result: dict) -> dict:
+    <span class="cm"># Convert any Unix timestamp to ISO 8601</span>
+    <span class="kw">for</span> field <span class="kw">in</span> (<span class="str">"created_at"</span>, <span class="str">"shipped_at"</span>, <span class="str">"delivered_at"</span>):
+        <span class="kw">if</span> field <span class="kw">in</span> result <span class="kw">and</span> isinstance(result[field], (<span class="fn">int</span>, <span class="fn">float</span>)):
+            result[field] = datetime.utcfromtimestamp(result[field]).isoformat()
+    <span class="kw">return</span> result</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">Hook vs. Prerequisite Gate vs. Prompt — Decision Rule</div>
+        <p><strong>Hooks</strong> = intercept specific tool calls for policy/normalization. <strong>Prerequisite gates</strong> = enforce ordering of tool calls. <strong>Prompts</strong> = guidance for judgment calls, style, escalation criteria. When you need 100% compliance on a business rule, use hooks or gates. When you need good judgment, use prompts + few-shot.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SIMULATION                                                   -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="sim">
+    <div class="task-header">
+      <span class="task-num">⚙</span>
+      <h2>Python Simulation Files</h2>
+    </div>
+    <div class="task-body">
+      <h3>File Structure</h3>
+      <div class="file-block">scenario 1 - customer support resolution agent/<br>
+&nbsp;&nbsp;scenario_1_training.html &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">← this file</span><br>
+&nbsp;&nbsp;simulation/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;agent.py &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">← full agent with gates, hooks, loop</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;dataset.json &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">← 12 test cases + mock databases</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;test_runner.py &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted)">← FCR measurement vs 80% target</span>
+      </div>
+
+      <h3>Quick Start</h3>
+      <pre><code><span class="cm"># Install dependency</span>
+pip install anthropic
+
+<span class="cm"># Set your API key</span>
+$env:ANTHROPIC_API_KEY = <span class="str">"sk-ant-..."</span>
+
+<span class="cm"># Preview all 12 test cases without calling API</span>
+python test_runner.py --dry-run
+
+<span class="cm"># Run a single case</span>
+python test_runner.py --case C001
+
+<span class="cm"># Run all cases and measure FCR</span>
+python test_runner.py
+
+<span class="cm"># Run single case demo directly</span>
+python agent.py</code></pre>
+
+      <h3>What Each File Demonstrates</h3>
+      <table>
+        <tr><th>File</th><th>Key Concepts</th></tr>
+        <tr><td>agent.py</td><td>SessionState, prerequisite gate, PreToolUse hook ($500 threshold), PostToolUse hook (normalization + state update), rich tool descriptions, explicit escalation criteria in system prompt, agentic loop</td></tr>
+        <tr><td>dataset.json</td><td>12 cases covering: simple refunds, escalation demands, policy exceptions, multi-match, multi-issue, threshold exceeded, policy gap, out-of-scope</td></tr>
+        <tr><td>test_runner.py</td><td>FCR measurement, breakdown by complexity category, failure analysis</td></tr>
+      </table>
+
+      <h3>Key Test Cases to Study</h3>
+      <table>
+        <tr><th>Case</th><th>Complexity</th><th>Tests</th></tr>
+        <tr><td>C001</td><td>simple</td><td>Standard refund flow — prerequisite gate in action</td></tr>
+        <tr><td>C004</td><td>escalation_demand</td><td>Explicit human request — must NOT investigate first</td></tr>
+        <tr><td>C006</td><td>policy_gap</td><td>Competitor price match — policy silent, must escalate</td></tr>
+        <tr><td>C009</td><td>multi_match</td><td>Multiple customers named "Alex Smith" — must clarify</td></tr>
+        <tr><td>C010</td><td>multi_issue</td><td>Two issues in one message — decompose and handle both</td></tr>
+        <tr><td>C011</td><td>threshold_exceeded</td><td>$750 refund — PreToolUse hook must block</td></tr>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- LABS                                                         -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="labs">
+    <div class="task-header">
+      <span class="task-num">Lab</span>
+      <h2>Labs — Hands-On Exercises</h2>
+    </div>
+    <div class="task-body">
+
+      <div class="lab-block">
+        <h3>Lab 1 — Verify the Prerequisite Gate</h3>
+        <p>Observe the gate blocking and self-correcting agent behavior.</p>
+        <ol class="lab-steps">
+          <li>Run <code>python test_runner.py --dry-run</code> and read all 12 cases.</li>
+          <li>In <code>agent.py</code>, temporarily comment out the gate in <code>execute_tool()</code> — the line that calls <code>prerequisite_gate()</code>.</li>
+          <li>Run <code>python test_runner.py --case C001</code>. Does the agent still call get_customer first?</li>
+          <li>Modify the system prompt to remove all references to get_customer. Run again. Note the change in behavior without the gate.</li>
+          <li>Restore the gate. Confirm the agent always calls get_customer first regardless of system prompt wording.</li>
+          <li><strong>Observation to note:</strong> With the gate, even a degraded system prompt results in correct ordering.</li>
+        </ol>
+      </div>
+
+      <div class="lab-block">
+        <h3>Lab 2 — Test the $500 PreToolUse Hook</h3>
+        <p>Observe policy enforcement at the hook layer.</p>
+        <ol class="lab-steps">
+          <li>Run <code>python test_runner.py --case C011</code> (the $750 refund case).</li>
+          <li>Observe the hook blocking the <code>process_refund</code> call and the agent redirecting to <code>escalate_to_human</code>.</li>
+          <li>Temporarily change the threshold from 500 to 1000 in <code>pre_tool_use_hook()</code>. Re-run C011. What happens?</li>
+          <li>Restore the threshold. Now remove the hook entirely and re-run C011. Does the system prompt alone prevent the $750 refund?</li>
+          <li><strong>Key insight:</strong> How often does the model attempt the refund when the hook is absent?</li>
+        </ol>
+      </div>
+
+      <div class="lab-block">
+        <h3>Lab 3 — Escalation Calibration</h3>
+        <p>Tune the escalation criteria to hit 80%+ FCR.</p>
+        <ol class="lab-steps">
+          <li>Remove the few-shot escalation examples from <code>SYSTEM_PROMPT</code> in agent.py, keeping only the criteria table.</li>
+          <li>Run <code>python test_runner.py</code>. Record the FCR rate.</li>
+          <li>Add back the few-shot examples. Run again. Compare FCR.</li>
+          <li>Run <code>python test_runner.py --case C004</code> (explicit human request). Observe whether the agent investigates first or escalates immediately.</li>
+          <li>Run <code>python test_runner.py --case C006</code> (competitor price match). Confirm the agent escalates due to policy gap — not because it's complex.</li>
+        </ol>
+      </div>
+
+      <div class="lab-block">
+        <h3>Lab 4 — Multi-Match Clarification (C009)</h3>
+        <p>Verify the agent asks for more info instead of guessing.</p>
+        <ol class="lab-steps">
+          <li>Run <code>python test_runner.py --case C009</code>.</li>
+          <li>Verify the agent asks for email or order number — it should NOT pick one of the matching customers heuristically.</li>
+          <li>In <code>mcp_get_customer()</code>, change the multi-match response to return the first match silently. Re-run C009. This simulates the wrong behavior — note how it could process a refund for the wrong customer.</li>
+          <li>Restore correct behavior.</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PRACTICE QUESTIONS                                           -->
+  <!-- ============================================================ -->
+  <div class="task-section" id="questions">
+    <div class="task-header">
+      <span class="task-num">Q</span>
+      <h2>Practice Questions — Exam Format</h2>
+    </div>
+    <div class="task-body">
+
+      <div class="mc-block">
+        <div class="mc-q">Q1. Production data shows that in 12% of cases, your agent skips <code>get_customer</code> entirely and calls <code>lookup_order</code> using only the customer's stated name, occasionally leading to misidentified accounts and incorrect refunds. What change would most effectively address this reliability issue?</div>
+        <div class="mc-opt correct" data-letter="A">Add a programmatic prerequisite that blocks <code>lookup_order</code> and <code>process_refund</code> calls until <code>get_customer</code> has returned a verified customer ID.</div>
+        <div class="mc-opt" data-letter="B">Enhance the system prompt to state that customer verification via <code>get_customer</code> is mandatory before any order operations.</div>
+        <div class="mc-opt" data-letter="C">Add few-shot examples showing the agent always calling <code>get_customer</code> first, even when customers volunteer order details.</div>
+        <div class="mc-opt" data-letter="D">Implement a routing classifier that analyzes each request and enables only the subset of tools appropriate for that request type.</div>
+        <div class="mc-explain">A is correct. When a specific tool sequence is required for critical business logic, programmatic enforcement provides deterministic guarantees. B and C rely on probabilistic LLM compliance — insufficient when errors have financial consequences at scale. D addresses tool availability, not tool ordering, which is the actual problem.</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q2. Production logs show the agent frequently calls <code>get_customer</code> when users ask about orders (e.g., "check my order #12345"), instead of calling <code>lookup_order</code>. Both tools have minimal descriptions ("Retrieves customer information" / "Retrieves order details") and accept similar identifier formats. What's the most effective first step to improve tool selection reliability?</div>
+        <div class="mc-opt" data-letter="A">Add few-shot examples to the system prompt demonstrating correct tool selection patterns, with 5–8 examples showing order-related queries routing to <code>lookup_order</code>.</div>
+        <div class="mc-opt correct" data-letter="B">Expand each tool's description to include input formats it handles, example queries, edge cases, and explicit boundaries explaining when to use it versus similar tools.</div>
+        <div class="mc-opt" data-letter="C">Implement a routing layer that parses user input before each turn and pre-selects the appropriate tool based on detected keywords.</div>
+        <div class="mc-opt" data-letter="D">Consolidate both tools into a single <code>lookup_entity</code> tool that accepts any identifier and internally determines which backend to query.</div>
+        <div class="mc-explain">B is correct. Tool descriptions are the primary mechanism LLMs use for tool selection. Minimal descriptions create systematic ambiguity — the model lacks context to differentiate. B fixes the root cause. A adds overhead without fixing the underlying gap. C is over-engineered and bypasses the LLM's natural language understanding. D is architecturally valid but is a major change — not a "first step."</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q3. Your agent achieves 55% first-contact resolution, well below the 80% target. Logs show it escalates straightforward damage replacements while attempting to autonomously handle policy exceptions. What's the most effective way to improve escalation calibration?</div>
+        <div class="mc-opt correct" data-letter="A">Add explicit escalation criteria to your system prompt with few-shot examples demonstrating when to escalate versus resolve autonomously.</div>
+        <div class="mc-opt" data-letter="B">Have the agent self-report a confidence score (1–10) before each response and automatically route to humans when confidence falls below a threshold.</div>
+        <div class="mc-opt" data-letter="C">Deploy a separate classifier model trained on historical tickets to predict which requests need escalation before the main agent begins processing.</div>
+        <div class="mc-opt" data-letter="D">Implement sentiment analysis to detect customer frustration and automatically escalate when negative sentiment exceeds a threshold.</div>
+        <div class="mc-explain">A is correct. The root cause is unclear decision boundaries — explicit criteria with examples directly fixes this. B fails because LLM self-reported confidence is poorly calibrated — models are overconfident on hard cases. C requires labeled data and ML infrastructure before prompt optimization has been attempted. D is wrong because sentiment ≠ complexity; an angry customer with a simple damage return should still be resolved.</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q4. A customer opens with: "I need to speak with a real person right now. This is completely unacceptable." Your agent has access to all four MCP tools. What is the correct tool call sequence?</div>
+        <div class="mc-opt" data-letter="A"><code>get_customer</code> → look up orders to understand the issue → attempt resolution → <code>escalate_to_human</code> if unsuccessful</div>
+        <div class="mc-opt correct" data-letter="B"><code>get_customer</code> → <code>escalate_to_human</code> immediately with customer context</div>
+        <div class="mc-opt" data-letter="C"><code>escalate_to_human</code> immediately without calling <code>get_customer</code></div>
+        <div class="mc-opt" data-letter="D"><code>get_customer</code> → acknowledge frustration → offer to resolve autonomously → <code>escalate_to_human</code> only if customer reiterates</div>
+        <div class="mc-explain">B is correct. Explicit customer requests for a human must be honored immediately — no investigation first. However, get_customer must still be called first so the human agent receives a verified customer ID in the handoff. C skips identity verification, which the escalation handoff needs. A and D violate customer autonomy by attempting to resolve before the customer has consented.</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q5. Your customer support agent calls <code>get_customer("Alex Smith")</code> and receives a response indicating two accounts match that name. What is the correct agent behavior?</div>
+        <div class="mc-opt" data-letter="A">Select the account with more recent activity and proceed with the interaction</div>
+        <div class="mc-opt" data-letter="B">Escalate to a human agent because identity cannot be confirmed</div>
+        <div class="mc-opt correct" data-letter="C">Ask the customer for their email address or order number to uniquely identify their account</div>
+        <div class="mc-opt" data-letter="D">Proceed with the most common name match and flag for post-interaction review</div>
+        <div class="mc-explain">C is correct. Multiple matches require clarification via additional identifiers — email or order number. Never select heuristically (A, D) — the financial consequence of the wrong account is exactly the problem the prerequisite gate is designed to prevent. B (escalate) is an overreaction — the agent can resolve this with one clarifying question.</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q6. You need to block <code>process_refund</code> calls above $500 and automatically redirect to <code>escalate_to_human</code>. Your colleague suggests adding "Never process refunds above $500 — always escalate to human" to the system prompt. Why is this approach insufficient for a production system?</div>
+        <div class="mc-opt" data-letter="A">The system prompt is not visible to the tool, so it cannot affect tool behavior</div>
+        <div class="mc-opt" data-letter="B">System prompts are truncated for long conversations, removing the instruction</div>
+        <div class="mc-opt correct" data-letter="C">Prompt instructions have a non-zero failure rate; even well-written instructions will be ignored in some cases at production scale</div>
+        <div class="mc-opt" data-letter="D">Claude ignores system prompt instructions when tools are available</div>
+        <div class="mc-explain">C is correct. LLM compliance with prompt instructions is probabilistic — even excellent prompts produce occasional non-compliance. At production scale, a 0.5% non-compliance rate on a $500 threshold means real financial exposure. PreToolUse hooks provide 100% enforcement because they intercept at the code layer before the tool executes, regardless of what the model decides.</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q7. Your <code>lookup_order</code> MCP tool returns 47 fields per call (full order record). Over a long multi-issue session, you notice the agent begins summarizing customer-stated refund amounts incorrectly. What is the most likely cause and best fix?</div>
+        <div class="mc-opt" data-letter="A">The model's context window is too small; switch to a model with larger context</div>
+        <div class="mc-opt" data-letter="B">The agent needs more few-shot examples showing correct amount handling</div>
+        <div class="mc-opt correct" data-letter="C">Verbose tool output accumulates in context, pushing critical facts toward the middle where attention degrades; trim tool output to only relevant fields in a PostToolUse hook</div>
+        <div class="mc-opt" data-letter="D">The tool descriptions are too long, consuming context that should be used for the conversation</div>
+        <div class="mc-explain">C is correct. Verbose tool output accumulates across multiple calls and creates two problems: (1) critical information gets pushed to the "lost in the middle" region where attention is weakest, and (2) the context fills faster, triggering summarization that loses precise values. The fix is PostToolUse trimming — return only the 5–6 fields relevant to refund resolution, not all 47.</div>
+      </div>
+
+      <div class="mc-block">
+        <div class="mc-q">Q8. A customer asks: "I saw this item on CompetitorX for $20 less. Can you match it?" Your company policy document covers price adjustments for your own website's sales but makes no mention of competitor pricing. What should the agent do?</div>
+        <div class="mc-opt" data-letter="A">Apply the own-site price adjustment policy by analogy and process a $20 discount</div>
+        <div class="mc-opt" data-letter="B">Decline the request because the policy doesn't explicitly permit competitor matching</div>
+        <div class="mc-opt correct" data-letter="C">Escalate to a human agent because policy is silent on this specific request</div>
+        <div class="mc-opt" data-letter="D">Ask the customer for proof of the competitor price before deciding</div>
+        <div class="mc-explain">C is correct. When policy is ambiguous or silent on a specific request, the agent must escalate — it should not interpret policy liberally or make judgment calls about what policy "probably" permits. This protects the company from unauthorized commitments. A is wrong — applying policy "by analogy" is unauthorized policy extension. B is wrong — the agent is not qualified to deny; only a human can decide. D adds unnecessary steps before the necessary escalation.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="task-section">
+    <div class="task-header">
+      <span class="task-num">∑</span>
+      <h2>Scenario 1 — Decision Rules Summary</h2>
+    </div>
+    <div class="task-body">
+      <div class="summary-grid">
+        <div class="summary-item"><div class="key">Tool ordering enforcement</div><div class="val">Programmatic prerequisite gate — not a prompt. 100% vs ~97-99%.</div></div>
+        <div class="summary-item"><div class="key">Policy threshold enforcement</div><div class="val">PreToolUse hook — intercepts call before execution, regardless of model decision.</div></div>
+        <div class="summary-item"><div class="key">Tool selection reliability</div><div class="val">Rich descriptions with negative boundaries — "do NOT use for X" is as important as "use for Y."</div></div>
+        <div class="summary-item"><div class="key">Escalation calibration</div><div class="val">Explicit category criteria + few-shot examples. NOT confidence scores, NOT sentiment.</div></div>
+        <div class="summary-item"><div class="key">Explicit human request</div><div class="val">Escalate IMMEDIATELY after get_customer — do not investigate first.</div></div>
+        <div class="summary-item"><div class="key">Policy gap</div><div class="val">Policy silent = escalate. Never interpret or assume authorization.</div></div>
+        <div class="summary-item"><div class="key">Multiple customer matches</div><div class="val">Ask for email or order number. Never select heuristically.</div></div>
+        <div class="summary-item"><div class="key">Context preservation</div><div class="val">Case facts block outside summarized history. Trim verbose tool output via PostToolUse.</div></div>
+        <div class="summary-item"><div class="key">Empty result vs error</div><div class="val">No results = isError: false + empty list. Not an error — don't retry.</div></div>
+        <div class="summary-item"><div class="key">Multi-issue decomposition</div><div class="val">Decompose in parallel, address each, synthesize ONE response.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXAM QUICK-FIRE -->
+  <div class="exam-section">
+    <h2>Exam Quick-Fire — Scenario 1</h2>
+    <div class="exam-q">
+      <div class="q">Agent skips get_customer 12% of the time despite system prompt instructions. Fix?</div>
+      <div class="a">Programmatic prerequisite gate — blocks lookup_order and process_refund until verified_customer_id is set</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">Agent confuses get_customer and lookup_order. Quickest fix?</div>
+      <div class="a">Expand tool descriptions with negative boundaries ("Do NOT use for X") — not few-shot examples, not a routing layer</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">FCR is 55% — agent escalates simple damage cases. Root cause?</div>
+      <div class="a">Unclear escalation boundaries. Fix: explicit criteria categories + few-shot examples in system prompt</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">Customer says "I want a human." Agent should...?</div>
+      <div class="a">get_customer → escalate_to_human. No investigation. No offer to resolve first.</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">Customer requests $750 refund. Tool or prompt?</div>
+      <div class="a">PreToolUse hook blocks process_refund above $500 — not a system prompt instruction</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">Two customers share the same name. Agent should...?</div>
+      <div class="a">Ask for email or order number. Never select heuristically.</div>
+    </div>
+    <div class="exam-q">
+      <div class="q">Policy is silent on competitor price matching. Agent should...?</div>
+      <div class="a">Escalate — policy gap requires human decision, not liberal interpretation</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

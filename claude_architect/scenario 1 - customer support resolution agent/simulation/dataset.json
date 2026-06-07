@@ -1,0 +1,158 @@
+{
+  "scenario": "Customer Support Resolution Agent",
+  "target_fcr": 0.80,
+  "cases": [
+    {
+      "id": "C001",
+      "customer_id": "CUST-1001",
+      "request": "I need a refund for my damaged order. Order number is ORD-5521. The screen is cracked.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "process_refund"],
+      "expected_resolution": "resolved",
+      "expected_outcome": "Refund processed for damaged item",
+      "refund_amount": 89.99,
+      "complexity": "simple",
+      "notes": "Standard damage replacement — should resolve autonomously with photo evidence"
+    },
+    {
+      "id": "C002",
+      "customer_id": "CUST-1002",
+      "request": "I was charged twice for my subscription this month. My account email is jane.doe@example.com.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "process_refund"],
+      "expected_resolution": "resolved",
+      "expected_outcome": "Duplicate charge refunded",
+      "refund_amount": 29.99,
+      "complexity": "simple",
+      "notes": "Billing duplicate — clear evidence, should resolve autonomously"
+    },
+    {
+      "id": "C003",
+      "customer_id": "CUST-1003",
+      "request": "I want to return something I bought 6 months ago. I know it's past your 30-day policy but I feel it should be honored.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "escalate_to_human"],
+      "expected_resolution": "escalated",
+      "expected_outcome": "Escalated — policy exception required",
+      "refund_amount": 149.99,
+      "complexity": "complex",
+      "notes": "Policy exception — outside return window, requires human decision"
+    },
+    {
+      "id": "C004",
+      "customer_id": "CUST-1004",
+      "request": "I need to speak with a real person right now. This is unacceptable.",
+      "expected_tool_sequence": ["get_customer", "escalate_to_human"],
+      "expected_resolution": "escalated",
+      "expected_outcome": "Immediately escalated per customer request",
+      "refund_amount": 0,
+      "complexity": "escalation_demand",
+      "notes": "Explicit customer demand for human — must NOT attempt to resolve first"
+    },
+    {
+      "id": "C005",
+      "customer_id": "CUST-1005",
+      "request": "My order ORD-7832 was supposed to arrive last Tuesday but still hasn't shown up. I need this resolved TODAY.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "process_refund"],
+      "expected_resolution": "resolved",
+      "expected_outcome": "Shipping delay refund or replacement issued",
+      "refund_amount": 54.50,
+      "complexity": "simple",
+      "notes": "Confirmed non-delivery — within policy to resolve autonomously"
+    },
+    {
+      "id": "C006",
+      "customer_id": "CUST-1006",
+      "request": "I saw the same item on a competitor's site for $20 less. Can you match that price?",
+      "expected_tool_sequence": ["get_customer", "escalate_to_human"],
+      "expected_resolution": "escalated",
+      "expected_outcome": "Escalated — policy gap (policy only covers own-site price matching)",
+      "refund_amount": 20.00,
+      "complexity": "policy_gap",
+      "notes": "Policy is silent on competitor price matching — escalate, do not interpret/assume"
+    },
+    {
+      "id": "C007",
+      "customer_id": "CUST-1007",
+      "request": "I returned my item 3 weeks ago but haven't received my refund yet. Order was ORD-4410.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "process_refund"],
+      "expected_resolution": "resolved",
+      "expected_outcome": "Refund reissued for confirmed return",
+      "refund_amount": 199.00,
+      "complexity": "simple",
+      "notes": "Return confirmed in system, refund not processed — straightforward fix"
+    },
+    {
+      "id": "C008",
+      "customer_id": "CUST-1008",
+      "request": "I received the wrong item entirely. I ordered a blue jacket size M but got a red shirt size XL.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "process_refund"],
+      "expected_resolution": "resolved",
+      "expected_outcome": "Wrong item — full refund or replacement issued",
+      "refund_amount": 75.00,
+      "complexity": "simple",
+      "notes": "Wrong item fulfillment — agent can resolve with photo evidence"
+    },
+    {
+      "id": "C009",
+      "customer_id": "CUST-MULTI",
+      "request": "Hi, I'm Alex Smith. I need help with my recent order.",
+      "expected_tool_sequence": ["get_customer"],
+      "expected_resolution": "pending_clarification",
+      "expected_outcome": "Request additional identifier — multiple customers named Alex Smith",
+      "refund_amount": 0,
+      "complexity": "multi_match",
+      "notes": "Multiple customer matches — must ask for email or order number, NOT select heuristically"
+    },
+    {
+      "id": "C010",
+      "customer_id": "CUST-1010",
+      "request": "I have two issues: first my ORD-9901 arrived damaged, and second I was billed the wrong amount on my last invoice.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "lookup_order", "process_refund", "process_refund"],
+      "expected_resolution": "resolved",
+      "expected_outcome": "Both issues resolved in single interaction",
+      "refund_amount": 130.00,
+      "complexity": "multi_issue",
+      "notes": "Multi-concern request — decompose, handle each in parallel, synthesize unified response"
+    },
+    {
+      "id": "C011",
+      "customer_id": "CUST-1011",
+      "request": "I want a refund of $750 for the business losses I incurred because your product failed.",
+      "expected_tool_sequence": ["get_customer", "lookup_order", "escalate_to_human"],
+      "expected_resolution": "escalated",
+      "expected_outcome": "Escalated — exceeds $500 automated refund threshold",
+      "refund_amount": 750.00,
+      "complexity": "threshold_exceeded",
+      "notes": "Refund exceeds automated threshold — programmatic hook must block and escalate"
+    },
+    {
+      "id": "C012",
+      "customer_id": "CUST-1012",
+      "request": "My account has been locked and I can't log in. I have orders pending.",
+      "expected_tool_sequence": ["get_customer", "escalate_to_human"],
+      "expected_resolution": "escalated",
+      "expected_outcome": "Escalated — account access issue beyond refund agent scope",
+      "refund_amount": 0,
+      "complexity": "out_of_scope",
+      "notes": "Account access issues are beyond this agent's tool scope"
+    }
+  ],
+  "customer_db": {
+    "CUST-1001": {"name": "Marcus Johnson", "email": "marcus.j@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1002": {"name": "Jane Doe", "email": "jane.doe@example.com", "verified": true, "account_standing": "good"},
+    "CUST-1003": {"name": "Robert Chen", "email": "r.chen@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1004": {"name": "Sarah Williams", "email": "s.williams@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1005": {"name": "Derek Park", "email": "d.park@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1006": {"name": "Priya Patel", "email": "p.patel@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1007": {"name": "Tom Rivera", "email": "t.rivera@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1008": {"name": "Lisa Wong", "email": "l.wong@email.com", "verified": true, "account_standing": "good"},
+    "CUST-MULTI": {"name": "MULTIPLE_MATCH", "email": null, "verified": false, "matches": ["CUST-2001", "CUST-2002"]},
+    "CUST-1010": {"name": "Kevin O'Brien", "email": "k.obrien@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1011": {"name": "Diana Foster", "email": "d.foster@email.com", "verified": true, "account_standing": "good"},
+    "CUST-1012": {"name": "Ahmad Hassan", "email": "a.hassan@email.com", "verified": false, "account_standing": "locked"}
+  },
+  "order_db": {
+    "ORD-5521": {"customer_id": "CUST-1001", "item": "Laptop Screen Protector", "amount": 89.99, "status": "delivered", "days_since_order": 5, "return_window_days": 30},
+    "ORD-7832": {"customer_id": "CUST-1005", "item": "Wireless Keyboard", "amount": 54.50, "status": "in_transit_delayed", "days_since_order": 12, "return_window_days": 30},
+    "ORD-4410": {"customer_id": "CUST-1007", "item": "Monitor Stand", "amount": 199.00, "status": "returned_pending_refund", "days_since_order": 42, "return_window_days": 30},
+    "ORD-9901": {"customer_id": "CUST-1010", "item": "Mechanical Keyboard", "amount": 85.00, "status": "delivered_damaged", "days_since_order": 3, "return_window_days": 30}
+  }
+}
