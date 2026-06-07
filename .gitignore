@@ -21,6 +21,9 @@ __pycache__/
 # Nested git repos (managed separately if needed)
 anthropiccourses/.git/
 
+# Node
+node_modules/
+
 # OS
 .DS_Store
 Thumbs.db
