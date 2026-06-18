@@ -1,0 +1,238 @@
+Your agent must find every call site of a deprecated function legacyAuth() across a large, unfamiliar codebase before refactoring the callers. What is the most effective first tool to use?
+
+Use Glob for **/*.{js,ts} to list all source files, then Read each one to locate the calls.
+Use Grep to search file contents for legacyAuth across the codebase, then Read the matching files to understand each call site.
+Read the entire src/ directory into context so the agent has full visibility before refactoring.
+Use Bash find . -name "*.js" to enumerate files, then have the agent infer which ones likely contain the function.
+
+Correct: Use Grep to search file contents for legacyAuth across the codebase, then Read the matching files to understand each call site.
+
+
+The agent is updating a config value that appears identically in twelve places within one file. Its Edit calls keep failing because the target text is not unique. What is the correct way to make the change reliably?
+
+Retry the same Edit repeatedly and hope one instance resolves uniquely.
+Split the file into twelve smaller files so each occurrence becomes unique, then Edit each.
+Bypass Claude's file tools and use Bash sed -i to do the replacement.
+Read the full file, apply all twelve changes in memory, and Write the updated file back.
+
+Correct: Read the full file, apply all twelve changes in memory, and Write the updated file back.
+
+
+Every developer should get an internal Postgres MCP server when they open the repo, with each developer's connection string supplied without committing secrets to version control. How should you configure it?
+
+In project-scoped .mcp.json, referencing the credential via environment-variable expansion (e.g., ${DATABASE_URL}).
+In each developer's user-scoped ~/.claude.json, with their connection string hardcoded.
+In the project CLAUDE.md, with the connection string in a fenced code block.
+In project-scoped .mcp.json with the connection string written inline so it's identical for everyone.
+
+Correct: In project-scoped .mcp.json, referencing the credential via environment-variable expansion (e.g., ${DATABASE_URL}).
+
+
+Engineers waste many tool calls exploring which database tables exist before they can write queries. Your MCP server already knows the schema. What's the most efficient way to give the agent visibility?
+
+Add a list_all_tables tool and instruct the system prompt to always call it first.
+Paste the full schema into CLAUDE.md so it loads into every session.
+Expose the schema as an MCP resource so the agent sees available tables and columns without exploratory tool calls.
+Have the agent Grep the migration files to reconstruct the schema each session.
+
+Correct: Expose the schema as an MCP resource so the agent sees available tables and columns without exploratory tool calls.
+
+
+During a long session mapping a legacy monolith, the agent starts giving inconsistent answers and referencing "typical patterns" instead of the specific classes it identified earlier. What most effectively preserves accuracy as exploration continues?
+
+Increase max_tokens so the agent can hold more of the conversation in each response.
+Have the agent record key findings (class names, dependencies, entry points) in a scratchpad file and reference it for later questions.
+Restart from scratch and re-explore the entire codebase for each new question.
+Instruct the agent to "remember everything important and never generalize."
+
+Correct: Have the agent record key findings (class names, dependencies, entry points) in a scratchpad file and reference it for later questions.
+
+
+You need Jira integration for the agent (a maintained community Jira MCP server exists with the tools you need) and integration with an internal proprietary deployment system that has no existing connector. How should you proceed?
+
+Use the community Jira MCP server, and build a custom MCP server only for the proprietary deployment system.
+Build custom MCP servers for both so they share one codebase and coding style.
+Extend the community Jira server with the proprietary deployment tools so everything lives in one server.
+Skip MCP for Jira and have the agent use Bash with the Jira CLI instead.
+
+Correct: Use the community Jira MCP server, and build a custom MCP server only for the proprietary deployment system.
+
+
+Your system extracts invoice fields, but some invoices omit a PO number entirely, and in production the model fabricates plausible-looking PO numbers when the field is absent. Which schema change best prevents this?
+
+Add a system-prompt instruction: "Never guess a PO number; leave it blank if missing."
+Mark the PO-number field required so the model is forced to locate it.
+Make the PO-number field optional/nullable so the model can return null when it's absent.
+Add a post-processing regex that strips any PO number not matching the expected format.
+
+Correct: Make the PO-number field optional/nullable so the model can return null when it's absent.
+
+
+Your pipeline receives documents of unknown type (invoice, receipt, or contract), each with its own extraction tool/schema. You must guarantee structured output rather than conversational text while letting the model pick the right schema. Which tool_choice setting fits?
+
+tool_choice: "auto" — lets the model decide whether to call a tool at all.
+tool_choice: {"type":"tool","name":"extract_invoice"} — forces the invoice schema every time.
+Omit tool_choice and rely on a detailed system prompt describing each schema.
+tool_choice: "any" — forces a tool call but lets the model choose which schema applies.
+
+Correct: tool_choice: "any" — forces a tool call but lets the model choose which schema applies.
+
+
+Your validation-retry loop appends the validation error and resubmits on failure. It reliably fixes some failures but never succeeds on one category no matter how many times it loops. Which category is that?
+
+Required information that is simply absent from the source document.
+Dates returned in the wrong format (DD/MM vs ISO 8601).
+Numeric fields returned as strings instead of numbers.
+Line items placed in the wrong array position.
+
+Correct: Required information that is simply absent from the source document.
+
+
+Some invoices have a stated total that does not equal the sum of their line items — a real data-quality issue you must flag, not silently fix. Strict JSON schema via tool use guarantees valid syntax but won't catch this. What's the most effective design?
+
+Add "make sure the totals add up" to the extraction prompt.
+Extract a calculated_total (summed from line items) alongside the document's stated_total, and set a conflict_detected boolean on any discrepancy.
+Tighten the JSON schema so the total field only accepts the correct value.
+Reject and retry any extraction where the totals don't match until they agree.
+
+Correct: Extract a calculated_total (summed from line items) alongside the document's stated_total, and set a conflict_detected boolean on any discrepancy.
+
+
+Accuracy drops on academic papers depending on layout: the model misses citations when they're inline (Smith 2020) in some documents and when they're in an end-of-document bibliography in others. Detailed prose instructions haven't fixed it. What's the most effective next step?
+
+Add a longer, more explicit paragraph to the prompt describing both citation styles.
+Split into two pipelines and use a classifier to route documents by citation style first.
+Switch to a larger model with a longer context window.
+Add 2–4 few-shot examples demonstrating correct extraction from both inline-citation and bibliography-style documents.
+
+Correct: Add 2–4 few-shot examples demonstrating correct extraction from both inline-citation and bibliography-style documents.
+
+
+You run two extraction workloads: (1) a real-time API that extracts fields the moment a user uploads a document and shows results on screen, and (2) an overnight job that re-extracts your entire historical archive for a quarterly audit. You want to cut costs. How should you apply the Message Batches API?
+
+Use the Batches API for both, polling for status on the live flow and showing a spinner until results return.
+Keep both synchronous to avoid custom_id correlation overhead.
+Use the Batches API for the overnight archive job only; keep synchronous calls for the live upload flow.
+Use the Batches API for both, with a timeout fallback to synchronous on the live flow.
+
+Correct: Use the Batches API for the overnight archive job only; keep synchronous calls for the live upload flow.
+
+
+Your extraction system reports 97% overall field accuracy, and a manager proposes removing human review entirely. Before automating, what's the most important validation to perform?
+
+Segment accuracy by document type and field, using stratified random sampling, to confirm no specific type or field performs poorly.
+Re-run the whole test set and confirm the aggregate is still ~97%.
+Increase the sample size until the overall accuracy confidence interval is narrow.
+Have the model self-report a confidence score per extraction and trust the high-confidence ones.
+
+Correct: Segment accuracy by document type and field, using stratified random sampling, to confirm no specific type or field performs poorly.
+
+
+A refund agent must never issue a refund above $500 without human approval, yet production logs show it occasionally processes refunds of $600+. Which change provides a guarantee rather than a probability?
+
+Add a sentence to the process_refund tool description noting the $500 ceiling.
+Implement a tool-call interception hook that blocks process_refund for amounts over $500 and redirects to human escalation.
+Add few-shot examples to the system prompt showing the agent escalating high-value refunds.
+Instruct the system prompt: "Never process refunds over $500; always escalate them."
+
+Correct: Implement a tool-call interception hook that blocks process_refund for amounts over $500 and redirects to human escalation.
+
+
+Identity verification must complete successfully before any account-modification tool runs. Which design gives a deterministic guarantee?
+
+A PostToolUse hook attached to verify_identity.
+A system prompt mandating that verification happens first.
+A prerequisite gate that blocks all account-modification tools until verify_identity has returned a verified status.
+tool_choice forcing verify_identity on the first turn.
+
+Correct: A prerequisite gate that blocks all account-modification tools until verify_identity has returned a verified status.
+
+
+A clinical-intake agent must record patient consent before calling store_health_record. Occasionally it stores the record first. The team needs guaranteed ordering. Best approach?
+
+Reorder the system prompt so the consent instruction appears before the storage instruction.
+Implement a prerequisite gate that blocks store_health_record until record_consent has returned success.
+Add 3–4 few-shot examples demonstrating consent-before-storage.
+Have the agent self-report, before each storage call, that it collected consent.
+
+Correct: Implement a prerequisite gate that blocks store_health_record until record_consent has returned success.
+
+
+A CI code-review agent produces many false positives on minor style nits, eroding developer trust. The team has never written down what counts as a reportable issue. What's the proportionate first step?
+
+Write explicit review criteria defining which issues to report (bugs, security) versus skip (minor style, local patterns).
+Fine-tune a custom model on the team's history of accepted versus dismissed review comments.
+Add a downstream classifier that predicts developer acceptance and filters findings below a threshold.
+Switch to a larger, higher-tier model to improve review judgment.
+
+Correct: Write explicit review criteria defining which issues to report (bugs, security) versus skip (minor style, local patterns).
+
+
+Two MCP tools, search_docs and search_kb, are frequently confused by the agent. Each has a one-line description. What's the lowest-effort effective fix?
+
+Merge them into a single search_all tool that internally decides which backend to query.
+Train an embedding-based router that scores tool relevance for each incoming query.
+Add a deterministic routing layer that parses the query and pre-selects a tool before each turn.
+Expand each description with input formats, example queries, and explicit when-to-use-versus-the-other boundaries.
+
+Correct: Expand each description with input formats, example queries, and explicit when-to-use-versus-the-other boundaries.
+
+
+Your extraction prompt returns dates in inconsistent formats. You've already tried adding more detailed prose instructions, without success. What's the proportionate next step?
+
+Build a fine-tuned date-normalization model trained on your historical outputs.
+Add 2–3 few-shot examples showing the exact desired format, plus a normalization rule in the prompt.
+Stand up a downstream microservice that reparses every emitted date through a dozen format heuristics.
+Switch to a larger model with stronger formatting behavior.
+
+Correct: Add 2–3 few-shot examples showing the exact desired format, plus a normalization rule in the prompt.
+
+
+A research system's report on "impact of climate policy on agriculture" omits livestock, fisheries, and land use entirely. Logs show the coordinator created two subtasks — "carbon taxes on crop farms" and "fertilizer subsidies" — and every subagent completed its assigned subtask correctly, with synthesis combining them faithfully. Root cause?
+
+The web search subagent's queries weren't broad enough.
+The synthesis agent failed to flag the missing coverage areas.
+The coordinator's task decomposition was too narrow, so whole domains of the topic were never assigned.
+The document analysis agent filtered out livestock and fisheries sources.
+
+Correct: The coordinator's task decomposition was too narrow, so whole domains of the topic were never assigned.
+
+
+A support request asks to (1) refund an order, (2) update the billing address, and (3) redeem loyalty points. Only the refund is completed. Logs show the agent processed the refund correctly, and both the address-update and points-redemption tools returned success on the rare occasions they were called. Most likely root cause?
+
+The agent didn't decompose the multi-concern request into distinct items, so it acted on only the first issue.
+The address-update tool silently failed despite reporting success.
+The loyalty-points tool needs a more detailed description.
+A refund hook blocked the other two operations.
+
+Correct: The agent didn't decompose the multi-concern request into distinct items, so it acted on only the first issue.
+
+
+A subagent returns the status "search unavailable" and the coordinator immediately terminates the entire research workflow. You're diagnosing why no recovery occurred. Where is the actual design flaw?
+
+The coordinator's model isn't capable enough to recover from failures.
+The underlying web-search API is unreliable and should be swapped out.
+The synthesis agent should have detected and compensated for the missing data.
+The subagent returned a generic status instead of structured error context (failure type, attempted query, partial results, alternatives), leaving the coordinator nothing to act on.
+
+Correct: The subagent returned a generic status instead of structured error context (failure type, attempted query, partial results, alternatives), leaving the coordinator nothing to act on.
+
+
+Tool misselection between two similar tools is degrading reliability. In testing, two fixes both resolve it: rewriting the two descriptions to differentiate them, or consolidating them into one tool with internal routing. As the immediate fix, which should you prefer?
+
+Rewrite the descriptions — the lowest-effort change that addresses the root cause (inadequate descriptions).
+Consolidate into one tool — it removes the choice the model was getting wrong.
+Add a routing classifier in front of both tools.
+Add few-shot examples of correct selection.
+
+Correct: Rewrite the descriptions — the lowest-effort change that addresses the root cause (inadequate descriptions).
+
+
+A synthesis agent occasionally needs to verify a date or name mid-task. Two designs both eliminate the latency problem in testing: give it a scoped verify_fact tool, or give it full access to the web-search toolset. Which is the better choice, and on what principle?
+
+Full web-search access — maximum flexibility to handle any verification it encounters.
+The scoped verify_fact tool — it meets the need under least privilege, preventing cross-specialization misuse.
+Route every verification back through the coordinator regardless of how simple it is.
+Give it both, for redundancy.
+
+Correct: The scoped verify_fact tool — it meets the need under least privilege, preventing cross-specialization misuse.
