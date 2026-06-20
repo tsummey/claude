@@ -242,12 +242,9 @@
 
   <div id="setup" class="toolbar">
     <select id="modeSelect">
-      <option value="all">All questions</option>
-      <option value="random10">Random 10</option>
-      <option value="random25">Random 25</option>
-      <option value="random50">Random 50</option>
-      <option value="first12">First 12 (PDF sample questions)</option>
-      <option value="last90">Official practice exam (90)</option>
+      <option value="all">All Questions</option>
+      <option value="random25">Random 25 Questions</option>
+      <option value="official">Official Practice Questions</option>
     </select>
     <button id="startBtn" class="primary">Start</button>
     <button id="fullscreenBtn" class="hidden">Go fullscreen</button>
@@ -3724,16 +3721,10 @@ document.getElementById('startBtn').addEventListener('click', () => {
   const mode = document.getElementById('modeSelect').value;
   let indices = QUESTIONS.map((_, i) => i);
 
-  if (mode === 'first12') {
-    indices = indices.slice(0, 12);
-  } else if (mode === 'last90') {
+  if (mode === 'official') {
     indices = indices.slice(Math.max(0, indices.length - 90));
-  } else if (mode === 'random10') {
-    indices = shuffle(indices).slice(0, 10);
   } else if (mode === 'random25') {
     indices = shuffle(indices).slice(0, 25);
-  } else if (mode === 'random50') {
-    indices = shuffle(indices).slice(0, 50);
   } else {
     indices = shuffle(indices);
   }
