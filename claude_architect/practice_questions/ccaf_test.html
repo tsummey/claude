@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CCAF Practice">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22CCAF%20Practice%20Exam%22%2C%22short_name%22%3A%22CCAF%20Practice%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f1115%22%2C%22theme_color%22%3A%22%230f1115%22%7D">
 <title>CCAF Practice Exam</title>
 <style>
   :root {
@@ -244,6 +250,7 @@
       <option value="last80">Last 80 (scenario-focused set)</option>
     </select>
     <button id="startBtn" class="primary">Start</button>
+    <button id="fullscreenBtn" class="hidden">Go fullscreen</button>
   </div>
 
   <div id="quizArea" class="hidden">
@@ -3238,6 +3245,20 @@ let answers = []; // { qIndex, chosen, correct }
 let currentOptionOrder = []; // maps displayed position -> original option index
 
 document.getElementById('totalCount').textContent = QUESTIONS.length;
+
+// Fullscreen API is only available in some mobile browsers (mainly Android
+// Chrome) and only works in response to a direct user gesture. iOS Safari
+// doesn't support it on iPhone, so the button only appears when the API
+// actually exists.
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+  || window.navigator.standalone === true;
+if (document.documentElement.requestFullscreen && !isStandalone) {
+  fullscreenBtn.classList.remove('hidden');
+  fullscreenBtn.addEventListener('click', () => {
+    document.documentElement.requestFullscreen().catch(() => {});
+  });
+}
 
 function shuffle(arr) {
   const a = arr.slice();
