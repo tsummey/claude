@@ -3235,6 +3235,61 @@ const QUESTIONS = [
 ],
 "correct": 1,
 "explain": "Even within a document that fits the context window, the 'lost in the middle' effect can cause reduced attention to content buried in the middle; mitigating it means chunking the document into sections and extracting each separately, or restructuring the input to foreground the key sections, rather than just shortening the document."
+},
+{
+"q": "Your automated code review averages 15 findings per pull request, with developers reporting a 40% false positive rate. The bottleneck is investigation time: developers must click into each finding to read Claude's reasoning before deciding whether to address or dismiss it. Your CLAUDE.md already contains comprehensive rules for acceptable patterns, and stakeholders have rejected any approach that filters findings before developer review. What change would best address the investigation time bottleneck?",
+"options": [
+"Categorize findings as \"blocking issues\" versus \"suggestions\" with tiered review requirements",
+"Require Claude to include its reasoning and confidence assessment inline with each finding",
+"Configure Claude to only surface findings it assesses as high confidence, filtering out uncertain flags before developers see them",
+"Add a post-processor that analyzes finding patterns and automatically suppresses those matching historical false positive signatures"
+],
+"correct": 1,
+"explain": "Requiring Claude to include its reasoning and confidence inline with each finding lets developers triage from the finding itself, without clicking through to investigate -- directly addressing the investigation-time bottleneck without filtering anything before review, which stakeholders already rejected."
+},
+{
+"q": "Your automated reviews identify valid issues but developers report the feedback isn't actionable. Findings say things like \"complex ticket allocation logic\" or \"potential null pointer\" without specifying what to change. When you add detailed instructions like \"always include specific fix suggestions,\" the model still produces inconsistent output—sometimes detailed, sometimes vague. What prompting technique would most reliably produce consistently actionable feedback?",
+"options": [
+"Implement a two-pass approach where one prompt identifies issues and a second prompt generates fixes, allowing specialization",
+"Further refine the instructions with more explicit requirements for each part of the feedback format (location, issue, severity, suggested fix)",
+"Expand the context window to include more of the surrounding codebase so the model has sufficient information to suggest specific fixes",
+"Add 3-4 few-shot examples showing the exact format you want: issue identified, code location, specific fix suggestion"
+],
+"correct": 3,
+"explain": "When more detailed prose instructions still produce inconsistent output, a small number of few-shot examples demonstrating the exact desired format (location, issue, severity, suggested fix) is more reliable than further refining the instructions, since examples show the model the target pattern rather than just describing it."
+},
+{
+"q": "Your automated code review system shows inconsistent severity ratings—similar issues like null pointer risks receive \"critical\" severity in some PRs but only \"medium\" in others. Developer trust is declining because teams can't predict which findings require immediate attention. What's the most effective way to improve severity consistency?",
+"options": [
+"Request that Claude include its reasoning for each severity assignment, then use that reasoning to manually calibrate and adjust ratings during review",
+"Add a CLAUDE.md file that lists issue types and their default severities, instructing Claude to reference this mapping when assigning ratings",
+"Include explicit severity criteria in your prompt with concrete code examples for each severity level",
+"Modify the prompt to ask Claude to rate severity relative to other issues in the same PR, so the most severe issue is always marked critical and others rated proportionally"
+],
+"correct": 2,
+"explain": "Explicit severity criteria with concrete code examples for each severity level gives the model a consistent reference point for classification, unlike asking for self-reported reasoning (which doesn't fix the underlying inconsistency) or rating issues relative to others in the same PR (which makes severity dependent on what else happens to be in that PR)."
+},
+{
+"q": "Your automated review generates test case suggestions for each PR. When reviewing a PR that adds course completion tracking, Claude suggests 10 test cases but developer feedback indicates 6 duplicate scenarios already covered in the existing test suite. What change would most effectively reduce duplicate suggestions?",
+"options": [
+"Reduce requested suggestions from 10 to 5, assuming Claude will prioritize the most valuable cases first",
+"Implement post-processing that filters suggestions whose descriptions match keywords from existing test names",
+"Include the existing test file in the context so Claude can identify what scenarios are already covered",
+"Add instructions directing Claude to focus exclusively on edge cases and error conditions rather than successful paths"
+],
+"correct": 2,
+"explain": "Including the existing test file in context lets Claude see what's already covered and avoid suggesting duplicate scenarios, directly addressing the root cause -- unlike reducing the suggestion count or keyword-matching test names after the fact, neither of which gives Claude the information needed to avoid duplicates in the first place."
+},
+{
+"q": "Your automated review analyzes comments and docstrings. The current prompt instructs Claude to \"check that comments are accurate and up-to-date.\" Findings frequently flag acceptable patterns (TODO markers, straightforward descriptions) while missing comments that describe behavior the code no longer implements. What change addresses the root cause of this inconsistent analysis?",
+"options": [
+"Include git blame data so Claude can identify comments that predate recent code modifications",
+"Filter out TODO, FIXME, and descriptive comment patterns before analysis to reduce noise",
+"Specify explicit criteria: flag comments only when their claimed behavior contradicts actual code behavior",
+"Add few-shot examples of misleading comments to help the model recognize similar patterns in the codebase"
+],
+"correct": 2,
+"explain": "The root cause is the vague instruction itself ('check that comments are accurate'); replacing it with explicit criteria (flag only when claimed behavior contradicts actual code behavior) targets exactly the inconsistency, rather than filtering specific comment patterns or relying on git blame metadata that doesn't address what counts as a real issue."
 }
 ];
 
