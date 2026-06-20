@@ -247,7 +247,7 @@
       <option value="random25">Random 25</option>
       <option value="random50">Random 50</option>
       <option value="first12">First 12 (PDF sample questions)</option>
-      <option value="last90">Last 90 (scenario-focused set)</option>
+      <option value="last89">Last 89 (scenario-focused set)</option>
     </select>
     <button id="startBtn" class="primary">Start</button>
     <button id="fullscreenBtn" class="hidden">Go fullscreen</button>
@@ -3330,8 +3330,8 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
   if (mode === 'first12') {
     indices = indices.slice(0, 12);
-  } else if (mode === 'last90') {
-    indices = indices.slice(Math.max(0, indices.length - 90));
+  } else if (mode === 'last89') {
+    indices = indices.slice(Math.max(0, indices.length - 89));
   } else if (mode === 'random10') {
     indices = shuffle(indices).slice(0, 10);
   } else if (mode === 'random25') {
