@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>CCAF Practice Exam</title>
 <style>
   :root {
@@ -114,6 +115,12 @@
     font-weight: 700;
     color: var(--muted);
     min-width: 18px;
+    flex-shrink: 0;
+  }
+  .option > span:last-child {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .option.correct .letter { color: var(--good); }
   .option.incorrect .letter { color: var(--bad); }
@@ -183,6 +190,42 @@
     padding: 2px 8px;
     font-size: 0.75rem;
     margin-left: 8px;
+  }
+
+  .option, .toolbar button, .nav button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 16px 10px; }
+    h1 { font-size: 1.2rem; }
+    .subtitle { font-size: 0.8rem; margin-bottom: 16px; }
+    .toolbar { flex-direction: column; }
+    .toolbar select, .toolbar button {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 1rem;
+    }
+    .card { padding: 16px; border-radius: 12px; }
+    .qtext { font-size: 1rem; }
+    .option {
+      padding: 14px;
+      min-height: 44px;
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+    .feedback { font-size: 0.9rem; line-height: 1.5; }
+    .nav { gap: 10px; }
+    .nav button {
+      flex: 1;
+      padding: 14px 10px;
+      font-size: 1rem;
+      min-height: 48px;
+    }
+    .progress { font-size: 0.75rem; }
+    .summary { padding: 24px 12px; }
+    .summary .score { font-size: 1.8rem; }
+    .review-item { padding: 12px; font-size: 0.9rem; }
   }
 </style>
 </head>
