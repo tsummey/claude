@@ -3169,8 +3169,8 @@ const QUESTIONS = [
 "Prompt Claude to batch tool requests per turn, and return all tool results together before the next API call.",
 "Increase max_tokens to give Claude more space to plan ahead and naturally batch its tool requests."
 ],
-"correct": 1,
-"explain": "When get_customer and lookup_order are almost always needed together but requested in separate sequential turns, a composite tool like get_customer_with_orders that bundles the common combination eliminates the extra round-trip entirely, unlike prompting Claude to batch requests or just raising max_tokens."
+"correct": 2,
+"explain": "Prompting Claude to batch related tool requests in a single turn, and returning all results together before the next API call, leverages Claude's native ability to request multiple tools simultaneously. This is the most effective approach because it directly addresses the sequential calling pattern with minimal architectural changes."
 },
 {
 "q": "After calling get_customer and lookup_order, the agent has retrieved all available system data but faces uncertainty. Which situation represents the most appropriate trigger for calling escalate_to_human?",
@@ -3214,7 +3214,7 @@ const QUESTIONS = [
 "Enter plan mode to explore the codebase, understand dependencies, and design an implementation approach before making changes."
 ],
 "correct": 3,
-"explain": "Large-scale, multi-file restructuring with multiple valid architectural approaches is exactly what plan mode is for: explore and design before committing to changes, avoiding costly rework from late-discovered dependencies."
+    "explain": "Using plan mode to explore the codebase, understand dependencies, and design an approach before making changes is the correct strategy for a complex architectural restructuring like breaking apart a monolith. This allows safe exploration and informed decision-making about service boundaries before committing to potentially costly changes across dozens of files."
 },
 {
 "q": "You're adding error handling wrappers to external API calls across a 120-file codebase. The task has three phases: (1) discovering all API call locations and patterns, (2) designing the error handling approach collaboratively, and (3) implementing wrappers consistently. During Phase 1, Claude generates verbose output listing hundreds of call sites with context. Your context window is filling rapidly before you've finished discovery. What's the most effective approach to complete this while maintaining implementation consistency?",
@@ -3236,7 +3236,7 @@ const QUESTIONS = [
 "Define a .claude/config.yaml file that maps file patterns to specific sections within CLAUDE.md"
 ],
 "correct": 2,
-"explain": "To split a large, multi-topic CLAUDE.md into focused, maintainable modules by subject, creating separate markdown files inside .claude/rules/ (one per topic) is the supported mechanism -- there's no real .claude/config.yaml feature that maps file patterns to sections within a single CLAUDE.md."
+    "explain": "TClaude Code supports a `.claude/rules/` directory where you can create separate markdown files for topic-specific guidelines (e.g., `testing.md`, `api-conventions.md`), allowing teams to organize large instruction sets into focused, maintainable modules."
 },
 {
 "q": "Your team has been using Claude Code for several months. Recently, three developers report that Claude correctly follows your \"always include comprehensive error handling\" guideline, but a fourth developer who just joined reports Claude isn't following this guideline. All four developers are working in the same repository and have the latest code pulled. What's the most likely cause and appropriate fix?",
@@ -3302,7 +3302,7 @@ const QUESTIONS = [
 "Include validation instructions in the skill's SKILL.md that direct Claude to verify $ARGUMENTS contains a valid name, add prompts to ignore prior conversation context, and list forbidden operations Claude should avoid."
 ],
 "correct": 1,
-"explain": "Three distinct problems each need a distinct fix: argument-hint solves missing names, context: fork solves context bleed from unrelated conversations, and a narrowed allowed-tools scope solves the destructive-operation risk -- no single configuration option addresses all three."
+    "explain": "This approach correctly uses three distinct skill configuration features to address each issue: `argument-hint` frontmatter shows expected parameters during autocomplete (addressing missing arguments), `context: fork` isolates execution in a subagent context separate from conversation history (preventing context bleeding from earlier conversations), and `allowed-tools` restricts tool access to only file write operations (preventing destructive actions)."
 },
 {
 "q": "You've asked Claude Code to implement a function that transforms API responses into a normalized internal format. After two iterations, the output structure still doesn't match expectations—some fields are nested differently and timestamps aren't formatted correctly. You've been describing the requirements in prose, but Claude seems to interpret them differently each time. What's the most effective approach for the next iteration?",
